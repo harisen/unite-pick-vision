@@ -23,60 +23,38 @@
 
 ## セットアップ
 
-### 方法A: exeで起動（推奨）
+### 1. ダウンロード
 
-1. [Releases](https://github.com/harisen/unite-pick-vision/releases) から最新の `unite-pick-vision-vX.X.X-win64.zip` をダウンロード
-2. zipを展開
-3. `Unite Pick Vision.exe` をダブルクリック
+[Releases](https://github.com/harisen/unite-pick-vision/releases) から最新の `unite-pick-vision-vX.X.X-win64.zip` をダウンロードして展開します。
 
-Node.js不要。展開して実行するだけ。
+### 2. OBS WebSocket の設定
 
-### 方法B: ソースから起動（開発者向け）
+OBS Studio を開いて以下を確認:
+1. **ツール → WebSocket サーバー設定** を開く
+2. 「WebSocket サーバーを有効にする」を **ON**
+3. ポート: **4455**（デフォルトのまま）
+4. パスワードをメモしておく
 
-```bash
-git clone https://github.com/harisen/unite-pick-vision.git
-cd unite-pick-vision
-npm install
-npm start
-```
+### 3. 初回起動
 
-### OBS WebSocket の確認
+1. 展開したフォルダ内の `Unite Pick Vision.exe` をダブルクリック
+2. 初回起動時にトレイアイコン（右下）から **設定** を開く
+3. OBS パスワードを入力して保存
+4. OBSに `obs-vision overlay` ブラウザソースが自動で追加されます
 
-OBS Studio → ツール → WebSocket サーバー設定
-- サーバーを有効にする: ON
-- ポート: 4455（デフォルト）
-- パスワード: メモしておく
+### 4. 2回目以降
 
-### 3. 設定
-
-`.env.example` を `.env` にコピーして編集:
-
-```bash
-cp .env.example .env
-```
-
-```env
-OBS_WS_URL=ws://localhost:4455
-OBS_WS_PASSWORD=your_password_here
-POLL_INTERVAL_MS=3000
-PORT=3000
-```
-
-### 4. 起動
-
-```bash
-npm start
-```
-
-または `start.bat` をダブルクリック。
+`Unite Pick Vision.exe` を起動するだけでOKです。
 
 ## 使い方
 
 1. OBSを起動し、ゲーム画面のキャプチャが映っている状態にする
-2. `npm start` でアプリを起動（システムトレイに常駐）
-3. OBSに `obs-vision overlay` ブラウザソースが自動追加される
-4. ゲームのピック画面になると自動検出開始
-5. 敵チーム確定後、オーバーレイに表示される（45秒後に自動非表示）
+2. `Unite Pick Vision.exe` を起動（システムトレイに常駐）
+3. ゲームのピック画面になると自動検出開始
+4. 敵チーム確定後、レーン予測付きオーバーレイが表示（45秒後に自動非表示）
+5. 次の試合で自動的にリセットされ、再検出が始まります
+
+> **開発者向け:** ソースから起動する場合は `git clone` → `npm install` → `npm start`
 
 ## スロット座標の調整
 
