@@ -318,7 +318,7 @@ async function connectOBS() {
 // -----------------------------------------------
 function openSettings() {
   if (settingsWin) { settingsWin.focus(); return; }
-  settingsWin = new BrowserWindow({ width: 400, height: 260, resizable: false, title: 'obs-vision 設定',
+  settingsWin = new BrowserWindow({ width: 400, height: 320, resizable: true, title: 'obs-vision 設定',
     webPreferences: { nodeIntegration: true, contextIsolation: false }, icon: ICON.green });
   settingsWin.loadFile(path.join(__dirname, 'settings.html'));
   settingsWin.setMenu(null);
