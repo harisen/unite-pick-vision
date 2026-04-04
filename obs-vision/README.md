@@ -4,6 +4,8 @@
 
 ![preview](https://img.shields.io/badge/platform-Windows-blue) ![license](https://img.shields.io/badge/license-MIT-green)
 
+**[デモ動画を見る](https://github.com/harisen/unite-pick-vision/releases/download/v1.0.0/demo.mp4)**
+
 ## 機能
 
 - **敵チーム5体の自動検出** — テンプレートマッチングによるリアルタイム検出（AI/GPU不要）
