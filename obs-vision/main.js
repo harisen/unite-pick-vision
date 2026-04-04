@@ -16,7 +16,7 @@ if (!require('fs').existsSync(envPath)) {
 }
 require('dotenv').config({ path: envPath });
 
-const { app, Tray, Menu, BrowserWindow, nativeImage, Notification } = require('electron');
+const { app, Tray, Menu, BrowserWindow, nativeImage, Notification, ipcMain } = require('electron');
 const express = require('express');
 const OBSWebSocket = require('obs-websocket-js').default;
 const path = require('path');
@@ -386,6 +386,8 @@ app.whenReady().then(() => {
     if (req.body.SLOT_REGIONS) lines.push(`SLOT_REGIONS=${req.body.SLOT_REGIONS}`);
     try {
       fs.writeFileSync(path.join(__dirname, '.env'), lines.join('\n') + '\n', 'utf-8');
+      // メモリ上のprocess.envも更新
+      lines.forEach(l => { const [k,v] = l.split('='); if (k && v !== undefined) process.env[k] = v; });
       console.log('[設定] .env保存完了');
       res.json({ ok: true });
     } catch (e) {
