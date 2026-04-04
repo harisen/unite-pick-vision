@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: transparent;
+      width: 100vw;
+      height: 100vh;
+      font-family: 'Segoe UI', 'Hiragino Sans', sans-serif;
+      overflow: hidden;
+    }
+
+    /* =============================================
+       最終準備中：上部横並び大表示
+    ============================================= */
+    #top-bar {
+      position: absolute;
+      top: 7%;
+      left: 1.5%;
+      right: 1.5%;
+      display: flex;
+      gap: 12px;
+      opacity: 0;
+      transform: translateY(-16px);
+      pointer-events: none;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    #top-bar.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .top-card {
+      flex: 1;
+      background: rgba(8, 8, 18, 0.86);
+      border: 2px solid rgba(255,255,255,0.18);
+      border-radius: 12px;
+      padding: 14px 10px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(6px);
+    }
+
+    .top-card img {
+      width: 96px;
+      height: 96px;
+      object-fit: contain;
+      image-rendering: auto;
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.7));
+    }
+    .top-card .no-icon {
+      width: 96px;
+      height: 96px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+    }
+
+    .top-card .card-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .top-card .card-role {
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      border-radius: 5px;
+      padding: 3px 10px;
+    }
+
+    .top-card .card-cc {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      justify-content: center;
+    }
+    .cc-tag {
+      font-size: 9px;
+      font-weight: 700;
+      color: #fff;
+      background: rgba(255,255,255,0.18);
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+    .cc-tag.hard { background: rgba(220, 80, 80, 0.7); }
+    .cc-tag.soft { background: rgba(100, 140, 200, 0.7); }
+
+    /* =============================================
+       選択フェイズ：右下小メモ
+    ============================================= */
+    #notepad {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(255, 252, 220, 0.93);
+      border: 2px solid #c8b560;
+      border-radius: 4px;
+      width: 320px;
+      box-shadow: 3px 3px 10px rgba(0,0,0,0.45);
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    #notepad.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .notepad-header {
+      background: #e8c840;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #5a4000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .notepad-body { padding: 6px 8px; }
+
+    .pokemon-row {
+      display: flex;
+      align-items: center;
+      padding: 4px 2px;
+      border-bottom: 1px solid rgba(180,160,80,0.3);
+      gap: 6px;
+    }
+    .pokemon-row:last-child { border-bottom: none; }
+
+    .pokemon-row img {
+      width: 30px;
+      height: 30px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .pokemon-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .pokemon-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #2a2a2a;
+      white-space: nowrap;
+    }
+
+    .pokemon-tags {
+      display: flex;
+      gap: 3px;
+      margin-top: 2px;
+      flex-wrap: wrap;
+    }
+
+    .tag-role {
+      font-size: 9px;
+      font-weight: 700;
+      color: #fff;
+      border-radius: 3px;
+      padding: 1px 5px;
+      flex-shrink: 0;
+    }
+
+    .tag-cc {
+      font-size: 8px;
+      font-weight: 700;
+      color: #fff;
+      border-radius: 3px;
+      padding: 1px 4px;
+      flex-shrink: 0;
+    }
+    .tag-cc.hard { background: rgba(200, 60, 60, 0.85); }
+    .tag-cc.soft { background: rgba(80, 120, 200, 0.85); }
+
+    #dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #aaa;
+      display: inline-block;
+    }
+    #dot.active  { background: #4caf50; }
+    #dot.picking { background: #e67e22; animation: blink 0.8s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  </style>
+</head>
+<body>
+
+  <!-- 最終準備中：横並び大表示 -->
+  <div id="top-bar"></div>
+
+  <!-- 選択フェイズ：右下小メモ -->
+  <div id="notepad">
+    <div class="notepad-header">相手チーム <span id="dot"></span></div>
+    <div class="notepad-body" id="notepad-body">
+      <div style="font-size:11px;color:#aaa;padding:6px 2px">待機中...</div>
+    </div>
+  </div>
+
+  <script>
+    const HARD_CC = new Set(['スタン', '眠り', '凍り', '拘束']);
+
+    function ccTagsHtml(ccList, cls = '') {
+      if (!ccList?.length) return '';
+      return ccList.map(cc => {
+        const type = HARD_CC.has(cc) ? 'hard' : 'soft';
+        return `<span class="${cls} ${cls === 'cc-tag' ? type : `tag-cc ${type}`}">${cc}</span>`;
+      }).join('');
+    }
+
+    const roleColors = {
+      'アタッカー':    '#e74c3c',
+      'ディフェンダー': '#3498db',
+      'スピーダー':    '#27ae60',
+      'バランス':      '#e67e22',
+      'サポート':      '#9b59b6',
+    };
+
+    const topBar     = document.getElementById('top-bar');
+    const notepad    = document.getElementById('notepad');
+    const notepadBody = document.getElementById('notepad-body');
+    const dot        = document.getElementById('dot');
+
+    // 横並び大カードを描画
+    function renderTopBar(team) {
+      if (!team?.length) return;
+      topBar.innerHTML = '';
+      team.forEach(p => {
+        const color = roleColors[p.role] || '#666';
+        const card = document.createElement('div');
+        card.className = 'top-card';
+        card.innerHTML = `
+          ${p.icon
+            ? `<img src="${p.icon}" alt="${p.name}" onerror="this.style.display='none'">`
+            : `<div class="no-icon">?</div>`}
+          <div class="card-name">${p.name}</div>
+          <div class="card-role" style="background:${color}">${p.role}</div>
+          ${p.cc?.length ? `<div class="card-cc">${ccTagsHtml(p.cc, 'cc-tag')}</div>` : ''}
+        `;
+        topBar.appendChild(card);
+      });
+    }
+
+    // 右下小メモを描画
+    function renderNotepad(team) {
+      if (!team?.length) return;
+      notepadBody.innerHTML = '';
+      team.forEach(p => {
+        const color = roleColors[p.role] || '#95a5a6';
+        const row = document.createElement('div');
+        row.className = 'pokemon-row';
+        row.innerHTML = `
+          ${p.icon ? `<img src="${p.icon}" alt="${p.name}">` : ''}
+          <div class="pokemon-info">
+            <div class="pokemon-name">${p.name}</div>
+            <div class="pokemon-tags">
+              <span class="tag-role" style="background:${color}">${p.role}</span>
+              ${ccTagsHtml(p.cc, 'tag-cc')}
+            </div>
+          </div>
+        `;
+        notepadBody.appendChild(row);
+      });
+    }
+
+    const es = new EventSource('/events');
+    es.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+
+      if (data.type === 'status') {
+        dot.className = 'active';
+      }
+
+      if (data.type === 'pick_update') {
+        renderNotepad(data.enemyTeam);
+        renderTopBar(data.enemyTeam);
+        notepad.className = 'visible';
+        topBar.className = '';
+        dot.className = 'picking';
+      }
+
+      if (data.type === 'vs') {
+        renderNotepad(data.enemyTeam);
+        renderTopBar(data.enemyTeam);
+        notepad.className = '';
+        topBar.className = '';
+        dot.className = 'active';
+      }
+
+      if (data.type === 'preparation') {
+        if (data.enemyTeam?.length) {
+          renderTopBar(data.enemyTeam);
+          renderNotepad(data.enemyTeam);
+        }
+        // 横並び大表示 ON、小メモ OFF
+        topBar.className = 'visible';
+        notepad.className = '';
+        dot.className = 'active';
+      }
+
+      if (data.type === 'gameplay') {
+        topBar.className = '';
+        notepad.className = '';
+        dot.className = '';
+      }
+    };
+    es.onerror = () => { dot.className = ''; };
+
+    // デバッグ: ?debug=1 でスロット検出範囲を赤枠表示
+    if (new URLSearchParams(location.search).has('debug')) {
+      const slots = [
+        { x: 0.9227, y: 0.125,  w: 0.0594, h: 0.1028 },
+        { x: 0.9227, y: 0.2594, w: 0.0594, h: 0.1028 },
+        { x: 0.9227, y: 0.3937, w: 0.0594, h: 0.1028 },
+        { x: 0.9227, y: 0.5281, w: 0.0594, h: 0.1028 },
+        { x: 0.9227, y: 0.6625, w: 0.0594, h: 0.1028 },
+      ];
+      slots.forEach((s, i) => {
+        const el = document.createElement('div');
+        el.style.cssText = `position:absolute;left:${s.x*100}%;top:${s.y*100}%;width:${s.w*100}%;height:${s.h*100}%;border:2px solid red;pointer-events:none;z-index:999;`;
+        el.innerHTML = `<span style="color:red;font-size:10px;background:rgba(0,0,0,0.6);padding:1px 3px">${i}</span>`;
+        document.body.appendChild(el);
+      });
+    }
+  </script>
+</body>
+</html>

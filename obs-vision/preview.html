@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>overlay preview — 最終準備中</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #6a8fc0;
+      width: 1280px; height: 720px;
+      font-family: 'Segoe UI', 'Hiragino Sans', sans-serif;
+      position: relative;
+      overflow: hidden;
+    }
+    .mock-label {
+      position: absolute;
+      top: 16px; left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.5);
+      font-size: 18px; font-weight: 700;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    #top-bar {
+      position: absolute;
+      top: 8%; left: 2%; right: 2%;
+      display: flex;
+      gap: 10px;
+    }
+    .top-card {
+      flex: 1;
+      background: rgba(10,10,20,0.82);
+      border: 2px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 10px 8px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      backdrop-filter: blur(4px);
+    }
+    .top-card img { width: 72px; height: 72px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6)); }
+    .card-name { font-size: 15px; font-weight: 700; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.8); text-align: center; }
+    .card-role { font-size: 11px; font-weight: 700; color: #fff; border-radius: 4px; padding: 2px 8px; }
+    .card-tier { font-size: 11px; color: rgba(255,255,255,0.6); }
+  </style>
+</head>
+<body>
+  <div class="mock-label">最終準備中 43 （ゲーム画面イメージ）</div>
+
+  <div id="top-bar">
+    <div class="top-card">
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/55.png">
+      <div class="card-name">ゴルダック</div>
+      <div class="card-role" style="background:#e74c3c">アタッカー</div>
+      <div class="card-tier">Tier S</div>
+    </div>
+    <div class="top-card">
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/143.png">
+      <div class="card-name">カビゴン</div>
+      <div class="card-role" style="background:#3498db">ディフェンダー</div>
+      <div class="card-tier">Tier A</div>
+    </div>
+    <div class="top-card">
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/658.png">
+      <div class="card-name">ゲッコウガ</div>
+      <div class="card-role" style="background:#27ae60">スピーダー</div>
+      <div class="card-tier">Tier B+</div>
+    </div>
+    <div class="top-card">
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/448.png">
+      <div class="card-name">ルカリオ</div>
+      <div class="card-role" style="background:#e67e22">バランス</div>
+      <div class="card-tier">Tier A+</div>
+    </div>
+    <div class="top-card">
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/830.png">
+      <div class="card-name">ワタシラガ</div>
+      <div class="card-role" style="background:#9b59b6">サポート</div>
+      <div class="card-tier">Tier S</div>
+    </div>
+  </div>
+</body>
+</html>

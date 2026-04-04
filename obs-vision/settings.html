@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>obs-vision 設定</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', 'Hiragino Sans', sans-serif;
+      background: #1a1d26;
+      color: #e0e0e0;
+      padding: 24px;
+      font-size: 13px;
+    }
+    h2 { font-size: 15px; color: #fff; margin-bottom: 20px; }
+    label { display: block; color: #aaa; margin-bottom: 4px; margin-top: 14px; }
+    input {
+      width: 100%;
+      padding: 7px 10px;
+      background: #252836;
+      border: 1px solid #3a3f52;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 13px;
+    }
+    input:focus { outline: none; border-color: #e8c840; }
+    button {
+      margin-top: 22px;
+      width: 100%;
+      padding: 9px;
+      background: #e8c840;
+      border: none;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 13px;
+      color: #3a2a00;
+      cursor: pointer;
+    }
+    button:hover { background: #f0d840; }
+    #msg { margin-top: 10px; text-align: center; font-size: 12px; color: #4caf50; height: 16px; }
+  </style>
+</head>
+<body>
+  <h2>obs-vision 設定</h2>
+
+  <label>OBS WebSocket URL</label>
+  <input id="obsUrl" type="text" placeholder="ws://localhost:4455">
+
+  <label>OBS パスワード</label>
+  <input id="obsPass" type="password" placeholder="パスワード">
+
+  <label>スキャン間隔（ミリ秒）</label>
+  <input id="interval" type="number" placeholder="3000" min="1000" max="30000" step="500">
+
+  <button onclick="save()">保存</button>
+  <div id="msg"></div>
+
+  <script>
+    fetch('/config').then(r => r.json()).then(cfg => {
+      document.getElementById('obsUrl').value   = cfg.OBS_WS_URL || '';
+      document.getElementById('obsPass').value  = cfg.OBS_WS_PASSWORD || '';
+      document.getElementById('interval').value = cfg.POLL_INTERVAL_MS || '3000';
+    });
+
+    async function save() {
+      const body = {
+        OBS_WS_URL:       document.getElementById('obsUrl').value,
+        OBS_WS_PASSWORD:  document.getElementById('obsPass').value,
+        POLL_INTERVAL_MS: document.getElementById('interval').value,
+      };
+      await fetch('/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      document.getElementById('msg').textContent = '保存しました。アプリを再起動してください。';
+      setTimeout(() => { document.getElementById('msg').textContent = ''; }, 3000);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "name": "obs-vision",
+  "version": "1.0.0",
+  "description": "ポケモンユナイト構成分析オーバーレイ",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "express": "^4.18.0",
+    "obs-websocket-js": "^5.0.0"
+  },
+  "devDependencies": {
+    "electron": "^41.1.1",
+    "electron-builder": "^26.8.1"
+  },
+  "build": {
+    "appId": "com.local.obs-vision",
+    "productName": "obs-vision",
+    "win": {
+      "target": "portable",
+      "icon": "build/icon.ico"
+    },
+    "files": [
+      "main.js",
+      "overlay.html",
+      "settings.html",
+      "pokemon-db.json",
+      "images/**",
+      "node_modules/**"
+    ],
+    "extraResources": [
+      { "from": "pokemon-db.json", "to": "pokemon-db.json" },
+      { "from": "images", "to": "images" },
+      { "from": ".env", "to": ".env" }
+    ]
+  }
+}
