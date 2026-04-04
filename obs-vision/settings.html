@@ -71,9 +71,17 @@
       };
       const pass = document.getElementById('obsPass').value;
       if (pass) body.OBS_WS_PASSWORD = pass;
-      await fetch('/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      document.getElementById('msg').textContent = '保存しました。アプリを再起動してください。';
-      setTimeout(() => { document.getElementById('msg').textContent = ''; }, 3000);
+      const res = await fetch('/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const msg = document.getElementById('msg');
+      if (res.ok) {
+        msg.style.color = '#4caf50';
+        msg.textContent = '保存しました。アプリを再起動してください。';
+      } else {
+        const err = await res.json();
+        msg.style.color = '#e74c3c';
+        msg.textContent = '保存失敗: ' + (err.error || '不明なエラー');
+      }
+      setTimeout(() => { msg.textContent = ''; }, 5000);
     }
   </script>
 </body>

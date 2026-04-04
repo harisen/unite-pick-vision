@@ -4,11 +4,15 @@ process.on('uncaughtException', (err) => {
 });
 process.on('unhandledRejection', (err) => { console.error('[unhandledRejection]', err); });
 
-// .envが無ければ.env.exampleからコピー
+// .envパス: app直下に書き込む
 const envPath = require('path').join(__dirname, '.env');
+console.log('[ENV] パス:', envPath);
 if (!require('fs').existsSync(envPath)) {
   const example = require('path').join(__dirname, '.env.example');
-  if (require('fs').existsSync(example)) require('fs').copyFileSync(example, envPath);
+  if (require('fs').existsSync(example)) {
+    try { require('fs').copyFileSync(example, envPath); console.log('[ENV] .env.exampleからコピー'); }
+    catch (e) { console.error('[ENV] コピー失敗:', e.message); }
+  }
 }
 require('dotenv').config({ path: envPath });
 
@@ -379,8 +383,14 @@ app.whenReady().then(() => {
   server.post('/config', (req, res) => {
     const lines = [`OBS_WS_URL=${req.body.OBS_WS_URL||'ws://localhost:4455'}`, `OBS_WS_PASSWORD=${req.body.OBS_WS_PASSWORD||process.env.OBS_WS_PASSWORD||''}`, `POLL_INTERVAL_MS=${req.body.POLL_INTERVAL_MS||'3000'}`, `PORT=${PORT}`];
     if (req.body.SLOT_REGIONS) lines.push(`SLOT_REGIONS=${req.body.SLOT_REGIONS}`);
-    fs.writeFileSync(path.join(__dirname, '.env'), lines.join('\n') + '\n', 'utf-8');
-    res.json({ ok: true });
+    try {
+      fs.writeFileSync(path.join(__dirname, '.env'), lines.join('\n') + '\n', 'utf-8');
+      console.log('[設定] .env保存完了');
+      res.json({ ok: true });
+    } catch (e) {
+      console.error('[設定] .env保存失敗:', e.message);
+      res.status(500).json({ error: e.message });
+    }
   });
 
   httpServer = server.listen(PORT, '127.0.0.1', () => console.log(`[Server] http://localhost:${PORT}`));
