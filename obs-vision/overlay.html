@@ -22,7 +22,8 @@
       left: 1.5%;
       right: 1.5%;
       display: flex;
-      gap: 12px;
+      gap: 20px;
+      justify-content: center;
       opacity: 0;
       transform: translateY(-16px);
       pointer-events: none;
@@ -33,6 +34,30 @@
       transform: translateY(0);
     }
 
+    .lane-group {
+      display: flex;
+      gap: 8px;
+      background: rgba(0,0,0,0.25);
+      border-radius: 14px;
+      padding: 8px;
+      flex: 2;
+    }
+    .lane-group.lane-center { flex: 1; }
+    .lane-group-label {
+      position: absolute;
+      bottom: -26px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      background: rgba(0,0,0,0.25);
+      padding: 3px 14px;
+      border-radius: 0 0 8px 8px;
+      white-space: nowrap;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+    }
+
     .top-card {
       flex: 1;
       border-radius: 12px;
@@ -41,8 +66,7 @@
       flex-direction: column;
       align-items: center;
       gap: 8px;
-      backdrop-filter: blur(4px);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     }
     .top-card.role-attacker {
       background: linear-gradient(180deg, rgba(220,60,50,0.90) 0%, rgba(160,30,30,0.85) 100%);
@@ -211,19 +235,41 @@
       if (!team?.length) return;
       topBar.innerHTML = '';
       const lanes = predictLanes(team);
+
+      // レーン別にグループ化（上→中央→下）
+      const groups = { '上': [], '中央': [], '下': [] };
       team.forEach((p, i) => {
-        const cls = ROLE_CLASS[p.role] || '';
-        const card = document.createElement('div');
-        card.className = `top-card ${cls}`;
-        card.innerHTML = `
-          <div class="card-lane">${LANE_ICON[lanes[i]] || ''} ${lanes[i]}</div>
-          ${p.icon ? `<img src="${p.icon}" alt="${p.name}" onerror="this.style.display='none'">` : `<div class="no-icon">?</div>`}
-          <div class="card-name">${p.name}</div>
-          <div class="card-role">${ROLE_DISPLAY[p.role] || p.role}</div>
-          ${p.cc?.length ? `<div class="card-cc">${ccTagsHtml(p.cc, 'cc-tag')}</div>` : ''}
-        `;
-        topBar.appendChild(card);
+        const lane = lanes[i] || '下';
+        if (!groups[lane]) groups[lane] = [];
+        groups[lane].push({ p, lane });
       });
+
+      const LANE_LABEL = { '上': '⬆ 上ルート', '中央': '🌿 中央', '下': '⬇ 下ルート' };
+
+      for (const laneName of ['上', '中央', '下']) {
+        const members = groups[laneName];
+        if (!members?.length) continue;
+
+        const group = document.createElement('div');
+        group.className = 'lane-group' + (laneName === '中央' ? ' lane-center' : '');
+        group.style.position = 'relative';
+        group.innerHTML = `<div class="lane-group-label">${LANE_LABEL[laneName]}</div>`;
+
+        members.forEach(({ p }) => {
+          const cls = ROLE_CLASS[p.role] || '';
+          const card = document.createElement('div');
+          card.className = `top-card ${cls}`;
+          card.innerHTML = `
+            ${p.icon ? `<img src="${p.icon}" alt="${p.name}" onerror="this.style.display='none'">` : `<div class="no-icon">?</div>`}
+            <div class="card-name">${p.name}</div>
+            <div class="card-role">${ROLE_DISPLAY[p.role] || p.role}</div>
+            ${p.cc?.length ? `<div class="card-cc">${ccTagsHtml(p.cc, 'cc-tag')}</div>` : ''}
+          `;
+          group.appendChild(card);
+        });
+
+        topBar.appendChild(group);
+      }
     }
 
     function renderNotepad(team) {

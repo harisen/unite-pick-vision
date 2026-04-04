@@ -4,7 +4,13 @@ process.on('uncaughtException', (err) => {
 });
 process.on('unhandledRejection', (err) => { console.error('[unhandledRejection]', err); });
 
-require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+// .envが無ければ.env.exampleからコピー
+const envPath = require('path').join(__dirname, '.env');
+if (!require('fs').existsSync(envPath)) {
+  const example = require('path').join(__dirname, '.env.example');
+  if (require('fs').existsSync(example)) require('fs').copyFileSync(example, envPath);
+}
+require('dotenv').config({ path: envPath });
 
 const { app, Tray, Menu, BrowserWindow, nativeImage, Notification } = require('electron');
 const express = require('express');
@@ -396,7 +402,7 @@ app.whenReady().then(() => {
       try { await obs.call('RemoveInput', { inputName: TEST_SOURCE }); } catch {}
       await new Promise(r => setTimeout(r, 500));
       const videos = (process.env.TEST_VIDEOS || '').split(';').filter(Boolean);
-      const file = videos.length ? videos[Math.floor(Math.random() * videos.length)] : 'C:/Users/akuta/Videos/test.mp4';
+      const file = videos.length ? videos[Math.floor(Math.random() * videos.length)] : '';
       const { sceneItemId } = await obs.call('CreateInput', { sceneName: scene, inputName: TEST_SOURCE, inputKind: 'ffmpeg_source', inputSettings: { local_file: file, looping: true, restart_on_activate: true }, sceneItemEnabled: true });
       const { baseWidth, baseHeight } = await obs.call('GetVideoSettings');
       await obs.call('SetSceneItemTransform', { sceneName: scene, sceneItemId, sceneItemTransform: { boundsType: 'OBS_BOUNDS_STRETCH', boundsWidth: baseWidth, boundsHeight: baseHeight, boundsAlignment: 0 } });

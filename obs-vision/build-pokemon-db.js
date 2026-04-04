@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const BOT_DIR = 'C:/Users/akuta/UniteDiscordBot';
+const BOT_DIR = process.env.UNITE_BOT_DIR || require('path').join(__dirname, '..', 'UniteDiscordBot');
 const OUT_PATH = path.join(__dirname, 'pokemon-db.json');
 const IMG_DIR = path.join(__dirname, 'images');
 
