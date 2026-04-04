@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder"
+    "build": "electron-builder",
+    "update-db": "node build-pokemon-db.js && git add pokemon-db.json images/ && git commit -m \"update: ポケモンDB・画像更新\" && npm version patch --no-git-tag-version && git add package.json package-lock.json && git commit -m \"chore: version bump\" && git push && echo \"更新完了\""
   },
   "dependencies": {
     "dotenv": "^16.0.0",
@@ -27,14 +28,14 @@
       "main.js",
       "overlay.html",
       "settings.html",
+      "calibrate.html",
+      "preview-slots.html",
       "pokemon-db.json",
       "images/**",
       "node_modules/**"
     ],
     "extraResources": [
-      { "from": "pokemon-db.json", "to": "pokemon-db.json" },
-      { "from": "images", "to": "images" },
-      { "from": ".env", "to": ".env" }
+      { "from": "images", "to": "images" }
     ]
   }
 }
