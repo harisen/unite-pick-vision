@@ -19,7 +19,7 @@
 
 ## 必要環境
 
-- **Windows 10/11**
+- **Windows 10/11** または **macOS**
 - **OBS Studio** 28+（WebSocket標準搭載）
 - OBSで映像キャプチャデバイス（キャプチャボード等）が設定済み
 
