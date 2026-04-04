@@ -377,7 +377,7 @@ app.whenReady().then(() => {
   server.get('/config', (_, res) => res.json({ OBS_WS_URL: process.env.OBS_WS_URL, OBS_WS_PASSWORD: process.env.OBS_WS_PASSWORD ? '********' : '', POLL_INTERVAL_MS: process.env.POLL_INTERVAL_MS }));
   server.use(express.json());
   server.post('/config', (req, res) => {
-    const lines = [`OBS_WS_URL=${req.body.OBS_WS_URL||'ws://localhost:4455'}`, `OBS_WS_PASSWORD=${req.body.OBS_WS_PASSWORD||''}`, `POLL_INTERVAL_MS=${req.body.POLL_INTERVAL_MS||'3000'}`, `PORT=${PORT}`];
+    const lines = [`OBS_WS_URL=${req.body.OBS_WS_URL||'ws://localhost:4455'}`, `OBS_WS_PASSWORD=${req.body.OBS_WS_PASSWORD||process.env.OBS_WS_PASSWORD||''}`, `POLL_INTERVAL_MS=${req.body.POLL_INTERVAL_MS||'3000'}`, `PORT=${PORT}`];
     if (req.body.SLOT_REGIONS) lines.push(`SLOT_REGIONS=${req.body.SLOT_REGIONS}`);
     fs.writeFileSync(path.join(__dirname, '.env'), lines.join('\n') + '\n', 'utf-8');
     res.json({ ok: true });

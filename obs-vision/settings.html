@@ -59,16 +59,18 @@
   <script>
     fetch('/config').then(r => r.json()).then(cfg => {
       document.getElementById('obsUrl').value   = cfg.OBS_WS_URL || '';
-      document.getElementById('obsPass').value  = cfg.OBS_WS_PASSWORD || '';
+      document.getElementById('obsPass').value  = '';
+      document.getElementById('obsPass').placeholder = cfg.OBS_WS_PASSWORD ? '設定済み（変更する場合のみ入力）' : 'パスワードを入力';
       document.getElementById('interval').value = cfg.POLL_INTERVAL_MS || '3000';
     });
 
     async function save() {
       const body = {
         OBS_WS_URL:       document.getElementById('obsUrl').value,
-        OBS_WS_PASSWORD:  document.getElementById('obsPass').value,
         POLL_INTERVAL_MS: document.getElementById('interval').value,
       };
+      const pass = document.getElementById('obsPass').value;
+      if (pass) body.OBS_WS_PASSWORD = pass;
       await fetch('/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       document.getElementById('msg').textContent = '保存しました。アプリを再起動してください。';
       setTimeout(() => { document.getElementById('msg').textContent = ''; }, 3000);
