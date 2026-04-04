@@ -374,7 +374,7 @@ app.whenReady().then(() => {
     req.on('close', () => { const i = clients.indexOf(res); if (i !== -1) clients.splice(i, 1); });
   });
 
-  server.get('/config', (_, res) => res.json({ OBS_WS_URL: process.env.OBS_WS_URL, OBS_WS_PASSWORD: process.env.OBS_WS_PASSWORD, POLL_INTERVAL_MS: process.env.POLL_INTERVAL_MS }));
+  server.get('/config', (_, res) => res.json({ OBS_WS_URL: process.env.OBS_WS_URL, OBS_WS_PASSWORD: process.env.OBS_WS_PASSWORD ? '********' : '', POLL_INTERVAL_MS: process.env.POLL_INTERVAL_MS }));
   server.use(express.json());
   server.post('/config', (req, res) => {
     const lines = [`OBS_WS_URL=${req.body.OBS_WS_URL||'ws://localhost:4455'}`, `OBS_WS_PASSWORD=${req.body.OBS_WS_PASSWORD||''}`, `POLL_INTERVAL_MS=${req.body.POLL_INTERVAL_MS||'3000'}`, `PORT=${PORT}`];
