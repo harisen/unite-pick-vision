@@ -27,6 +27,7 @@ const PORT = process.env.PORT || 38921;
 const SOURCE_NAME = 'obs-vision overlay';
 const TEMPLATE_SIZE = 48;
 const MATCH_THRESHOLD = 55;
+const IS_MAC = process.platform === 'darwin';
 
 let tray = null, settingsWin = null, obsConnected = false, httpServer = null, pollTimer = null;
 let captureSourceName_g = '';
@@ -41,7 +42,10 @@ function createCircleIcon(r, g, b) {
   for (let y = 0; y < size; y++)
     for (let x = 0; x < size; x++) {
       const i = (y * size + x) * 4, dist = Math.sqrt((x - 8) ** 2 + (y - 8) ** 2);
-      if (dist <= 6) { data[i] = b; data[i+1] = g; data[i+2] = r; data[i+3] = 255; }
+      if (dist <= 6) {
+        if (IS_MAC) { data[i] = r; data[i+1] = g; data[i+2] = b; data[i+3] = 255; }
+        else { data[i] = b; data[i+1] = g; data[i+2] = r; data[i+3] = 255; }
+      }
       else data[i+3] = 0;
     }
   return nativeImage.createFromBuffer(data, { width: size, height: size });
@@ -121,7 +125,9 @@ function isPickPhase(img) {
     const px = img.crop({ x: r.x, y: r.y, width: r.w, height: r.h }).toBitmap();
     let cnt = 0;
     for (let i = 0; i < px.length; i += 4) {
-      const blu = px[i], grn = px[i+1], red = px[i+2];
+      const red = IS_MAC ? px[i] : px[i+2];
+      const grn = px[i+1];
+      const blu = IS_MAC ? px[i+2] : px[i];
       if (red > 200 && grn > 100 && grn < 180 && blu < 80) cnt++;
     }
     if (cnt > (px.length / 4) * 0.05) return true;
