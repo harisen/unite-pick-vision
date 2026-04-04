@@ -270,8 +270,8 @@ async function connectOBS() {
         });
         console.log(`[${det.state}] locked=${det.lockedCount} 空=${unpickedCount} | ${log.join(' ')}`);
 
-        // --- 5体確定 → UI表示 ---
-        if (det.lockedCount >= 5) {
+        // --- 5体確定 → UI表示（1回だけ）---
+        if (det.lockedCount >= 5 && det.state !== 'confirmed') {
           det.confirm();
           pollTimer = setTimeout(poll, POLL.confirmed);
           return;
