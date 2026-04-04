@@ -57,10 +57,12 @@
   <div id="msg"></div>
 
   <script>
-    fetch('/config').then(r => r.json()).then(cfg => {
-      document.getElementById('obsUrl').value   = cfg.OBS_WS_URL || '';
+    const BASE = 'http://localhost:3000';
+    fetch(BASE + '/config').then(r => r.json()).then(cfg => {
+      document.getElementById('obsUrl').value   = cfg.OBS_WS_URL || 'ws://localhost:4455';
       document.getElementById('obsPass').value  = '';
-      document.getElementById('obsPass').placeholder = cfg.OBS_WS_PASSWORD ? '設定済み（変更する場合のみ入力）' : 'パスワードを入力';
+      document.getElementById('obsPass').placeholder = cfg.OBS_WS_PASSWORD !== '' ? '設定済み（変更する場合のみ入力）' : 'OBSのパスワードを入力してください';
+      if (cfg.OBS_WS_PASSWORD === '') document.getElementById('obsPass').style.borderColor = '#e74c3c';
       document.getElementById('interval').value = cfg.POLL_INTERVAL_MS || '3000';
     });
 
@@ -71,7 +73,7 @@
       };
       const pass = document.getElementById('obsPass').value;
       if (pass) body.OBS_WS_PASSWORD = pass;
-      const res = await fetch('/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const res = await fetch(BASE + '/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const msg = document.getElementById('msg');
       if (res.ok) {
         msg.style.color = '#4caf50';
