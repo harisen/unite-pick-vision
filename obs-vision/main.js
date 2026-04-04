@@ -23,7 +23,7 @@ const path = require('path');
 const fs = require('fs');
 
 const POKEMON_DB = JSON.parse(fs.readFileSync(path.join(__dirname, 'pokemon-db.json'), 'utf-8'));
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 38921;
 const SOURCE_NAME = 'obs-vision overlay';
 const TEMPLATE_SIZE = 48;
 const MATCH_THRESHOLD = 55;
