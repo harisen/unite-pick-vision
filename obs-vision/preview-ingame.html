@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>ingame preview</title>
+  <title>ingame preview - ゲーム風UI</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -14,14 +14,12 @@
       font-family: 'Segoe UI', 'Hiragino Sans', sans-serif;
     }
 
-    /* ゲーム画面の背景を再現 */
     .game-bg {
       position: absolute;
       inset: 0;
       background: linear-gradient(160deg, #b8c8e8 0%, #c0cce0 30%, #d0c8e8 60%, #c8c0e0 100%);
     }
 
-    /* 最終準備中 ヘッダー */
     .game-header {
       position: absolute;
       top: 10px;
@@ -45,7 +43,6 @@
       margin-top: 2px;
     }
 
-    /* 味方トレーナー（ダミー） */
     .trainers {
       position: absolute;
       top: 70px;
@@ -80,20 +77,8 @@
       font-weight: 600;
     }
 
-    /* 赤枠イメージ（参考用、実際はなし） */
-    .red-outline {
-      position: absolute;
-      top: 68px;
-      left: 18px;
-      right: 18px;
-      height: 250px;
-      border: 2px dashed rgba(255,80,80,0.4);
-      border-radius: 4px;
-      pointer-events: none;
-    }
-
     /* =====================
-       オーバーレイ本体
+       ゲーム風オーバーレイ
     ===================== */
     #top-bar {
       position: absolute;
@@ -107,29 +92,51 @@
 
     .top-card {
       flex: 1;
-      background: rgba(8, 8, 18, 0.85);
-      border: 1.5px solid rgba(255,255,255,0.18);
       border-radius: 10px;
       padding: 8px 6px 10px;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 5px;
-      backdrop-filter: blur(6px);
+      backdrop-filter: blur(4px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+    .top-card.role-attacker {
+      background: linear-gradient(180deg, rgba(220, 60, 50, 0.90) 0%, rgba(160, 30, 30, 0.85) 100%);
+      border: 2px solid rgba(255, 120, 100, 0.6);
+    }
+    .top-card.role-defender {
+      background: linear-gradient(180deg, rgba(50, 170, 80, 0.90) 0%, rgba(30, 120, 50, 0.85) 100%);
+      border: 2px solid rgba(100, 220, 130, 0.6);
+    }
+    .top-card.role-speedster {
+      background: linear-gradient(180deg, rgba(50, 120, 220, 0.90) 0%, rgba(30, 70, 160, 0.85) 100%);
+      border: 2px solid rgba(100, 160, 255, 0.6);
+    }
+    .top-card.role-allrounder {
+      background: linear-gradient(180deg, rgba(140, 60, 200, 0.90) 0%, rgba(90, 30, 150, 0.85) 100%);
+      border: 2px solid rgba(180, 120, 255, 0.6);
+    }
+    .top-card.role-supporter {
+      background: linear-gradient(180deg, rgba(220, 190, 40, 0.90) 0%, rgba(170, 140, 20, 0.85) 100%);
+      border: 2px solid rgba(255, 230, 100, 0.6);
     }
 
     .top-card img {
       width: 64px;
       height: 64px;
       object-fit: contain;
-      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7));
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+      border-radius: 8px;
+      background: rgba(255,255,255,0.15);
+      padding: 2px;
     }
 
     .card-name {
       font-size: 13px;
       font-weight: 700;
       color: #fff;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.7);
       text-align: center;
     }
 
@@ -139,6 +146,7 @@
       color: #fff;
       border-radius: 4px;
       padding: 2px 7px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
     }
 
     .card-cc {
@@ -154,14 +162,50 @@
       border-radius: 3px;
       padding: 1px 5px;
     }
-    .cc-tag.hard { background: rgba(220, 80, 80, 0.75); }
-    .cc-tag.soft { background: rgba(80, 120, 200, 0.75); }
+    .cc-tag.hard { background: rgba(200, 50, 50, 0.85); }
+    .cc-tag.soft { background: rgba(60, 100, 180, 0.85); }
+
+    .card-lane {
+      font-size: 10px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.9);
+      background: rgba(0,0,0,0.3);
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+
+    /* バーヘッダー */
+    .bar-header {
+      position: absolute;
+      top: 58px;
+      left: 22px;
+      right: 22px;
+      z-index: 11;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .bar-header .bar-title {
+      background: linear-gradient(90deg, rgba(230,130,30,0.95), rgba(200,100,20,0.9));
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 12px;
+      border-radius: 6px 6px 0 0;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+      letter-spacing: 1px;
+    }
+    .bar-header .bar-line {
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(230,160,60,0.6), transparent);
+    }
   </style>
 </head>
 <body>
   <div class="game-bg"></div>
 
-  <!-- ゲームUIダミー -->
   <div class="game-header">
     <div class="label">最終準備中</div>
     <div class="count">43</div>
@@ -175,53 +219,100 @@
     <div class="trainer-dummy"><div class="t-icon"></div><div class="t-name">トレーナー4</div></div>
   </div>
 
-  <div class="red-outline"></div>
-
   <!-- オーバーレイ -->
-  <div id="top-bar">
-    <div class="top-card">
-      <img src="images/t_Square_Cramorant.png">
-      <div class="card-name">ウッウ</div>
-      <div class="card-role" style="background:#e74c3c">アタッカー</div>
-      <div class="card-cc">
-        <span class="cc-tag soft">スタン</span>
-      </div>
-    </div>
-    <div class="top-card">
-      <img src="images/t_Square_Crustle.png">
-      <div class="card-name">イワパレス</div>
-      <div class="card-role" style="background:#3498db">ディフェンダー</div>
-      <div class="card-cc">
-        <span class="cc-tag hard">スタン</span>
-        <span class="cc-tag soft">ノックバック</span>
-      </div>
-    </div>
-    <div class="top-card">
-      <img src="images/t_Square_Lucario.png">
-      <div class="card-name">ルカリオ</div>
-      <div class="card-role" style="background:#e67e22">バランス</div>
-      <div class="card-cc">
-        <span class="cc-tag soft">ノックバック</span>
-        <span class="cc-tag hard">スタン</span>
-      </div>
-    </div>
-    <div class="top-card">
-      <img src="images/t_Square_Wigglytuff.png">
-      <div class="card-name">プクリン</div>
-      <div class="card-role" style="background:#9b59b6">サポート</div>
-      <div class="card-cc">
-        <span class="cc-tag hard">眠り</span>
-        <span class="cc-tag hard">スタン</span>
-      </div>
-    </div>
-    <div class="top-card">
-      <img src="images/t_Square_Eldegoss.png">
-      <div class="card-name">ワタシラガ</div>
-      <div class="card-role" style="background:#9b59b6">サポート</div>
-      <div class="card-cc">
-        <span class="cc-tag soft">スロー</span>
-      </div>
-    </div>
+  <div class="bar-header">
+    <div class="bar-title">相手チーム</div>
+    <div class="bar-line"></div>
   </div>
+
+  <div id="top-bar"></div>
+
+  <script>
+    const ROLE_DISPLAY = { 'アタッカー': 'アタック', 'ディフェンダー': 'ディフェンス', 'スピーダー': 'スピード', 'バランス': 'バランス', 'サポート': 'サポート' };
+    const ROLE_CLASS = { 'アタッカー': 'role-attacker', 'ディフェンダー': 'role-defender', 'スピーダー': 'role-speedster', 'バランス': 'role-allrounder', 'サポート': 'role-supporter' };
+
+    // レーン予測: 中央→上アタッカー→上サポーター→下アタッカー→下サポーター
+    const LANE_SLOTS = [
+      { lane: '中央', baseScores: { 'スピーダー': 5, 'バランス': 3, 'アタッカー': 1, 'ディフェンダー': 0, 'サポート': 0 } },
+      { lane: '上', baseScores: { 'バランス': 5, 'スピーダー': 3, 'アタッカー': 2, 'ディフェンダー': 0, 'サポート': 0 } },
+      { lane: '上', baseScores: { 'サポート': 5, 'ディフェンダー': 3, 'アタッカー': 0, 'バランス': 0, 'スピーダー': 0 } },
+      { lane: '下', baseScores: { 'アタッカー': 5, 'バランス': 2, 'スピーダー': 1, 'ディフェンダー': 0, 'サポート': 0 } },
+      { lane: '下', baseScores: { 'ディフェンダー': 5, 'サポート': 2, 'アタッカー': 0, 'バランス': 0, 'スピーダー': 0 } },
+    ];
+
+    function predictLanes(team) {
+      const remaining = team.map((p, i) => ({ ...p, idx: i }));
+      const assignments = new Array(team.length).fill('');
+
+      for (const slot of LANE_SLOTS) {
+        if (remaining.length === 0) break;
+        let bestIdx = 0, bestScore = -1;
+        remaining.forEach((p, i) => {
+          let s = slot.baseScores[p.role] || 0;
+          // ジャングル適性ボーナス（中央スロットの場合）
+          if (slot.lane === '中央' && p.jungle) s += 3;
+          if (s > bestScore) { bestScore = s; bestIdx = i; }
+        });
+        assignments[remaining[bestIdx].idx] = slot.lane;
+        remaining.splice(bestIdx, 1);
+      }
+      return assignments;
+    }
+
+    // pokemon-db.jsonからランダム5体を選出
+    let pokemonList = [];
+    fetch('/pokemon-db.json').then(r => r.json()).then(db => {
+      pokemonList = Object.entries(db).map(([ja, info]) => ({
+        name: ja, role: info.role, icon: info.icon, cc: info.cc || [], jungle: !!info.jungle
+      })).filter(p => p.icon);
+      renderTeam();
+    }).catch(() => {
+      // フォールバック
+      pokemonList = [
+        { name: 'ウッウ', role: 'アタッカー', icon: 'images/t_Square_Cramorant.png', cc: ['スタン'], jungle: false },
+        { name: 'イワパレス', role: 'ディフェンダー', icon: 'images/t_Square_Crustle.png', cc: ['スタン', 'ノックバック'], jungle: false },
+        { name: 'カメックス', role: 'ディフェンダー', icon: 'images/t_Square_Blastoise.png', cc: ['スロー', 'ノックバック'], jungle: false },
+        { name: 'エースバーン', role: 'アタッカー', icon: 'images/t_Square_Cinderace.png', cc: ['ノックバック'], jungle: true },
+        { name: 'ルカリオ', role: 'バランス', icon: 'images/t_Square_Lucario.png', cc: ['ノックバック', 'スタン'], jungle: false },
+      ];
+      renderTeam();
+    });
+
+    function pickRandom5() {
+      const shuffled = [...pokemonList].sort(() => Math.random() - 0.5);
+      return shuffled.slice(0, 5);
+    }
+
+    // クリックで再抽選
+    document.addEventListener('click', () => renderTeam());
+
+    function renderTeam() {
+    const topBar = document.getElementById('top-bar');
+    topBar.innerHTML = '';
+    const team = pickRandom5();
+
+    const HARD_CC = new Set(['スタン', '眠り', '凍り', '拘束']);
+    const lanes = predictLanes(team);
+    const LANE_ICON = { '中央': '🌿', '上': '⬆', '下': '⬇' };
+    team.forEach((p, i) => {
+      const cls = ROLE_CLASS[p.role] || '';
+      const ccHtml = (p.cc || []).map(cc => {
+        const type = HARD_CC.has(cc) ? 'hard' : 'soft';
+        return `<span class="cc-tag ${type}">${cc}</span>`;
+      }).join('');
+
+      const card = document.createElement('div');
+      card.className = `top-card ${cls}`;
+      card.innerHTML = `
+        <div class="card-lane">${LANE_ICON[lanes[i]] || ''} ${lanes[i]}</div>
+        <img src="${p.icon}">
+        <div class="card-name">${p.name}</div>
+        <div class="card-role">${ROLE_DISPLAY[p.role] || p.role}</div>
+        <div class="card-cc">${ccHtml}</div>
+      `;
+      topBar.appendChild(card);
+    });
+    } // renderTeam
+  </script>
 </body>
 </html>
