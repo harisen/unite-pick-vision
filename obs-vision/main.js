@@ -324,7 +324,7 @@ function openSettings() {
   if (settingsWin) { settingsWin.focus(); return; }
   settingsWin = new BrowserWindow({ width: 400, height: 320, resizable: true, title: 'obs-vision 設定',
     webPreferences: { nodeIntegration: true, contextIsolation: false }, icon: ICON.green });
-  settingsWin.loadFile(path.join(__dirname, 'settings.html'));
+  settingsWin.loadURL(`http://localhost:${PORT}/settings.html`);
   settingsWin.setMenu(null);
   settingsWin.on('closed', () => { settingsWin = null; });
 }
@@ -339,6 +339,7 @@ app.whenReady().then(() => {
   const server = express();
   server.use('/images', express.static(path.join(__dirname, 'images')));
   server.get('/overlay.html', (_, res) => res.sendFile(path.join(__dirname, 'overlay.html')));
+  server.get('/settings.html', (_, res) => res.sendFile(path.join(__dirname, 'settings.html')));
   server.get('/calibrate.html', (_, res) => res.sendFile(path.join(__dirname, 'calibrate.html')));
   server.get('/preview.html', (_, res) => res.sendFile(path.join(__dirname, 'preview-slots.html')));
   server.get('/preview-ingame.html', (_, res) => res.sendFile(path.join(__dirname, 'preview-ingame.html')));
