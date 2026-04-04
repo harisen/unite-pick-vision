@@ -69,10 +69,9 @@
     async function save() {
       const body = {
         OBS_WS_URL:       document.getElementById('obsUrl').value,
+        OBS_WS_PASSWORD:  document.getElementById('obsPass').value,
         POLL_INTERVAL_MS: document.getElementById('interval').value,
       };
-      const pass = document.getElementById('obsPass').value;
-      if (pass) body.OBS_WS_PASSWORD = pass;
       const res = await fetch(BASE + '/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const msg = document.getElementById('msg');
       if (res.ok) {
