@@ -383,7 +383,7 @@ app.whenReady().then(() => {
     res.json({ ok: true });
   });
 
-  httpServer = server.listen(PORT, () => console.log(`[Server] http://localhost:${PORT}`));
+  httpServer = server.listen(PORT, '127.0.0.1', () => console.log(`[Server] http://localhost:${PORT}`));
   httpServer.on('error', (err) => {
     if (err.code === 'EADDRINUSE') { console.error(`[Server] ポート${PORT}使用中、3秒後リトライ`); setTimeout(() => httpServer.listen(PORT), 3000); }
     else console.error('[Server]', err.message);
