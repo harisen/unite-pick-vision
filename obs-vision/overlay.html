@@ -35,175 +35,125 @@
 
     .top-card {
       flex: 1;
-      background: rgba(8, 8, 18, 0.86);
-      border: 2px solid rgba(255,255,255,0.18);
       border-radius: 12px;
       padding: 14px 10px 16px;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 8px;
-      backdrop-filter: blur(6px);
+      backdrop-filter: blur(4px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+    .top-card.role-attacker {
+      background: linear-gradient(180deg, rgba(220,60,50,0.90) 0%, rgba(160,30,30,0.85) 100%);
+      border: 2px solid rgba(255,120,100,0.6);
+    }
+    .top-card.role-defender {
+      background: linear-gradient(180deg, rgba(50,170,80,0.90) 0%, rgba(30,120,50,0.85) 100%);
+      border: 2px solid rgba(100,220,130,0.6);
+    }
+    .top-card.role-speedster {
+      background: linear-gradient(180deg, rgba(50,120,220,0.90) 0%, rgba(30,70,160,0.85) 100%);
+      border: 2px solid rgba(100,160,255,0.6);
+    }
+    .top-card.role-allrounder {
+      background: linear-gradient(180deg, rgba(140,60,200,0.90) 0%, rgba(90,30,150,0.85) 100%);
+      border: 2px solid rgba(180,120,255,0.6);
+    }
+    .top-card.role-supporter {
+      background: linear-gradient(180deg, rgba(220,190,40,0.90) 0%, rgba(170,140,20,0.85) 100%);
+      border: 2px solid rgba(255,230,100,0.6);
     }
 
     .top-card img {
       width: 96px;
       height: 96px;
       object-fit: contain;
-      image-rendering: auto;
-      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.7));
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5));
+      border-radius: 8px;
+      background: rgba(255,255,255,0.15);
+      padding: 2px;
     }
     .top-card .no-icon {
-      width: 96px;
-      height: 96px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      width: 96px; height: 96px;
+      display: flex; align-items: center; justify-content: center;
       font-size: 48px;
     }
-
+    .top-card .card-lane {
+      font-size: 11px; font-weight: 700;
+      color: rgba(255,255,255,0.9);
+      background: rgba(0,0,0,0.3);
+      padding: 2px 10px; border-radius: 4px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
     .top-card .card-name {
-      font-size: 18px;
-      font-weight: 700;
-      color: #fff;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.9);
-      text-align: center;
-      line-height: 1.2;
+      font-size: 18px; font-weight: 700; color: #fff;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+      text-align: center; line-height: 1.2;
     }
-
     .top-card .card-role {
-      font-size: 12px;
-      font-weight: 700;
-      color: #fff;
-      border-radius: 5px;
-      padding: 3px 10px;
+      font-size: 12px; font-weight: 700; color: #fff;
+      border-radius: 5px; padding: 3px 10px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
     }
-
     .top-card .card-cc {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 3px;
-      justify-content: center;
+      display: flex; flex-wrap: wrap; gap: 3px; justify-content: center;
     }
     .cc-tag {
-      font-size: 9px;
-      font-weight: 700;
-      color: #fff;
-      background: rgba(255,255,255,0.18);
-      border-radius: 3px;
-      padding: 1px 5px;
+      font-size: 9px; font-weight: 700; color: #fff;
+      border-radius: 3px; padding: 1px 5px;
     }
-    .cc-tag.hard { background: rgba(220, 80, 80, 0.7); }
-    .cc-tag.soft { background: rgba(100, 140, 200, 0.7); }
+    .cc-tag.hard { background: rgba(200,50,50,0.85); }
+    .cc-tag.soft { background: rgba(60,100,180,0.85); }
 
     /* =============================================
        選択フェイズ：右下小メモ
     ============================================= */
     #notepad {
       position: absolute;
-      bottom: 20px;
-      right: 20px;
-      background: rgba(255, 252, 220, 0.93);
+      bottom: 20px; right: 20px;
+      background: rgba(255,252,220,0.93);
       border: 2px solid #c8b560;
       border-radius: 4px;
       width: 320px;
       box-shadow: 3px 3px 10px rgba(0,0,0,0.45);
       overflow: hidden;
-      opacity: 0;
-      transform: translateY(12px);
+      opacity: 0; transform: translateY(12px);
       pointer-events: none;
       transition: opacity 0.4s ease, transform 0.4s ease;
     }
-    #notepad.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    #notepad.visible { opacity: 1; transform: translateY(0); }
 
     .notepad-header {
-      background: #e8c840;
-      padding: 5px 10px;
-      font-size: 11px;
-      font-weight: 700;
-      color: #5a4000;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      background: #e8c840; padding: 5px 10px;
+      font-size: 11px; font-weight: 700; color: #5a4000;
+      display: flex; justify-content: space-between; align-items: center;
     }
-
     .notepad-body { padding: 6px 8px; }
 
     .pokemon-row {
-      display: flex;
-      align-items: center;
-      padding: 4px 2px;
-      border-bottom: 1px solid rgba(180,160,80,0.3);
-      gap: 6px;
+      display: flex; align-items: center;
+      padding: 4px 2px; border-bottom: 1px solid rgba(180,160,80,0.3); gap: 6px;
     }
     .pokemon-row:last-child { border-bottom: none; }
+    .pokemon-row img { width: 30px; height: 30px; object-fit: contain; flex-shrink: 0; }
+    .pokemon-info { flex: 1; min-width: 0; }
+    .pokemon-name { font-size: 12px; font-weight: 600; color: #2a2a2a; white-space: nowrap; }
+    .pokemon-tags { display: flex; gap: 3px; margin-top: 2px; flex-wrap: wrap; }
+    .tag-role { font-size: 9px; font-weight: 700; color: #fff; border-radius: 3px; padding: 1px 5px; }
+    .tag-cc { font-size: 8px; font-weight: 700; color: #fff; border-radius: 3px; padding: 1px 4px; }
+    .tag-cc.hard { background: rgba(200,60,60,0.85); }
+    .tag-cc.soft { background: rgba(80,120,200,0.85); }
 
-    .pokemon-row img {
-      width: 30px;
-      height: 30px;
-      object-fit: contain;
-      flex-shrink: 0;
-    }
-
-    .pokemon-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .pokemon-name {
-      font-size: 12px;
-      font-weight: 600;
-      color: #2a2a2a;
-      white-space: nowrap;
-    }
-
-    .pokemon-tags {
-      display: flex;
-      gap: 3px;
-      margin-top: 2px;
-      flex-wrap: wrap;
-    }
-
-    .tag-role {
-      font-size: 9px;
-      font-weight: 700;
-      color: #fff;
-      border-radius: 3px;
-      padding: 1px 5px;
-      flex-shrink: 0;
-    }
-
-    .tag-cc {
-      font-size: 8px;
-      font-weight: 700;
-      color: #fff;
-      border-radius: 3px;
-      padding: 1px 4px;
-      flex-shrink: 0;
-    }
-    .tag-cc.hard { background: rgba(200, 60, 60, 0.85); }
-    .tag-cc.soft { background: rgba(80, 120, 200, 0.85); }
-
-    #dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: #aaa;
-      display: inline-block;
-    }
-    #dot.active  { background: #4caf50; }
+    #dot { width: 7px; height: 7px; border-radius: 50%; background: #aaa; display: inline-block; }
+    #dot.active { background: #4caf50; }
     #dot.picking { background: #e67e22; animation: blink 0.8s infinite; }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
   </style>
 </head>
 <body>
-
-  <!-- 最終準備中：横並び大表示 -->
   <div id="top-bar"></div>
 
-  <!-- 選択フェイズ：右下小メモ -->
   <div id="notepad">
     <div class="notepad-header">相手チーム <span id="dot"></span></div>
     <div class="notepad-body" id="notepad-body">
@@ -213,54 +163,74 @@
 
   <script>
     const HARD_CC = new Set(['スタン', '眠り', '凍り', '拘束']);
+    const ROLE_CLASS = { 'アタッカー': 'role-attacker', 'ディフェンダー': 'role-defender', 'スピーダー': 'role-speedster', 'バランス': 'role-allrounder', 'サポート': 'role-supporter' };
+    const ROLE_DISPLAY = { 'アタッカー': 'アタック', 'ディフェンダー': 'ディフェンス', 'スピーダー': 'スピード', 'バランス': 'バランス', 'サポート': 'サポート' };
+    const ROLE_COLOR = { 'アタッカー': '#dc3c32', 'ディフェンダー': '#32aa50', 'スピーダー': '#3278dc', 'バランス': '#8c3cc8', 'サポート': '#dcbe28' };
+    const LANE_ICON = { '中央': '🌿', '上': '⬆', '下': '⬇' };
 
-    function ccTagsHtml(ccList, cls = '') {
+    // レーン予測
+    const LANE_SLOTS = [
+      { lane: '中央', scores: { 'スピーダー': 5, 'バランス': 3, 'アタッカー': 1, 'ディフェンダー': 0, 'サポート': 0 } },
+      { lane: '上', scores: { 'バランス': 5, 'スピーダー': 3, 'アタッカー': 2, 'ディフェンダー': 0, 'サポート': 0 } },
+      { lane: '上', scores: { 'サポート': 5, 'ディフェンダー': 3, 'アタッカー': 0, 'バランス': 0, 'スピーダー': 0 } },
+      { lane: '下', scores: { 'アタッカー': 5, 'バランス': 2, 'スピーダー': 1, 'ディフェンダー': 0, 'サポート': 0 } },
+      { lane: '下', scores: { 'ディフェンダー': 5, 'サポート': 2, 'アタッカー': 0, 'バランス': 0, 'スピーダー': 0 } },
+    ];
+
+    function predictLanes(team) {
+      const remaining = team.map((p, i) => ({ ...p, idx: i }));
+      const assignments = new Array(team.length).fill('');
+      for (const slot of LANE_SLOTS) {
+        if (!remaining.length) break;
+        let bestIdx = 0, bestScore = -1;
+        remaining.forEach((p, i) => {
+          let s = slot.scores[p.role] || 0;
+          if (slot.lane === '中央' && p.jungle) s += 3;
+          if (s > bestScore) { bestScore = s; bestIdx = i; }
+        });
+        assignments[remaining[bestIdx].idx] = slot.lane;
+        remaining.splice(bestIdx, 1);
+      }
+      return assignments;
+    }
+
+    function ccTagsHtml(ccList, cls) {
       if (!ccList?.length) return '';
       return ccList.map(cc => {
         const type = HARD_CC.has(cc) ? 'hard' : 'soft';
-        return `<span class="${cls} ${cls === 'cc-tag' ? type : `tag-cc ${type}`}">${cc}</span>`;
+        return `<span class="${cls} ${type}">${cc}</span>`;
       }).join('');
     }
 
-    const roleColors = {
-      'アタッカー':    '#e74c3c',
-      'ディフェンダー': '#3498db',
-      'スピーダー':    '#27ae60',
-      'バランス':      '#e67e22',
-      'サポート':      '#9b59b6',
-    };
-
-    const topBar     = document.getElementById('top-bar');
-    const notepad    = document.getElementById('notepad');
+    const topBar = document.getElementById('top-bar');
+    const notepad = document.getElementById('notepad');
     const notepadBody = document.getElementById('notepad-body');
-    const dot        = document.getElementById('dot');
+    const dot = document.getElementById('dot');
 
-    // 横並び大カードを描画
     function renderTopBar(team) {
       if (!team?.length) return;
       topBar.innerHTML = '';
-      team.forEach(p => {
-        const color = roleColors[p.role] || '#666';
+      const lanes = predictLanes(team);
+      team.forEach((p, i) => {
+        const cls = ROLE_CLASS[p.role] || '';
         const card = document.createElement('div');
-        card.className = 'top-card';
+        card.className = `top-card ${cls}`;
         card.innerHTML = `
-          ${p.icon
-            ? `<img src="${p.icon}" alt="${p.name}" onerror="this.style.display='none'">`
-            : `<div class="no-icon">?</div>`}
+          <div class="card-lane">${LANE_ICON[lanes[i]] || ''} ${lanes[i]}</div>
+          ${p.icon ? `<img src="${p.icon}" alt="${p.name}" onerror="this.style.display='none'">` : `<div class="no-icon">?</div>`}
           <div class="card-name">${p.name}</div>
-          <div class="card-role" style="background:${color}">${p.role}</div>
+          <div class="card-role">${ROLE_DISPLAY[p.role] || p.role}</div>
           ${p.cc?.length ? `<div class="card-cc">${ccTagsHtml(p.cc, 'cc-tag')}</div>` : ''}
         `;
         topBar.appendChild(card);
       });
     }
 
-    // 右下小メモを描画
     function renderNotepad(team) {
       if (!team?.length) return;
       notepadBody.innerHTML = '';
       team.forEach(p => {
-        const color = roleColors[p.role] || '#95a5a6';
+        const color = ROLE_COLOR[p.role] || '#95a5a6';
         const row = document.createElement('div');
         row.className = 'pokemon-row';
         row.innerHTML = `
@@ -268,7 +238,7 @@
           <div class="pokemon-info">
             <div class="pokemon-name">${p.name}</div>
             <div class="pokemon-tags">
-              <span class="tag-role" style="background:${color}">${p.role}</span>
+              <span class="tag-role" style="background:${color}">${ROLE_DISPLAY[p.role] || p.role}</span>
               ${ccTagsHtml(p.cc, 'tag-cc')}
             </div>
           </div>
@@ -281,24 +251,13 @@
     es.onmessage = (e) => {
       const data = JSON.parse(e.data);
 
-      if (data.type === 'status') {
-        dot.className = 'active';
-      }
+      if (data.type === 'status') dot.className = 'active';
 
       if (data.type === 'pick_update') {
         renderNotepad(data.enemyTeam);
-        renderTopBar(data.enemyTeam);
         notepad.className = 'visible';
         topBar.className = '';
         dot.className = 'picking';
-      }
-
-      if (data.type === 'vs') {
-        renderNotepad(data.enemyTeam);
-        renderTopBar(data.enemyTeam);
-        notepad.className = '';
-        topBar.className = '';
-        dot.className = 'active';
       }
 
       if (data.type === 'preparation') {
@@ -306,7 +265,6 @@
           renderTopBar(data.enemyTeam);
           renderNotepad(data.enemyTeam);
         }
-        // 横並び大表示 ON、小メモ OFF
         topBar.className = 'visible';
         notepad.className = '';
         dot.className = 'active';
@@ -320,10 +278,10 @@
     };
     es.onerror = () => { dot.className = ''; };
 
-    // デバッグ: ?debug=1 でスロット検出範囲を赤枠表示
+    // デバッグ: ?debug でスロット検出範囲を赤枠表示
     if (new URLSearchParams(location.search).has('debug')) {
       const slots = [
-        { x: 0.9227, y: 0.125,  w: 0.0594, h: 0.1028 },
+        { x: 0.9227, y: 0.125, w: 0.0594, h: 0.1028 },
         { x: 0.9227, y: 0.2594, w: 0.0594, h: 0.1028 },
         { x: 0.9227, y: 0.3937, w: 0.0594, h: 0.1028 },
         { x: 0.9227, y: 0.5281, w: 0.0594, h: 0.1028 },

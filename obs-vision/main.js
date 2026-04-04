@@ -128,7 +128,7 @@ function dedupeResults(raw) {
 
 function buildTeamEntry(name) {
   const info = POKEMON_DB[name] || {};
-  return { name, role: info.role || '不明', cc: info.cc || [], icon: info.icon || null };
+  return { name, role: info.role || '不明', cc: info.cc || [], icon: info.icon || null, jungle: !!info.jungle };
 }
 
 // -----------------------------------------------
