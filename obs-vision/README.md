@@ -18,21 +18,29 @@
 ## 必要環境
 
 - **Windows 10/11**
-- **Node.js** 18+
 - **OBS Studio** 28+（WebSocket標準搭載）
 - OBSで映像キャプチャデバイス（キャプチャボード等）が設定済み
 
 ## セットアップ
 
-### 1. インストール
+### 方法A: exeで起動（推奨）
+
+1. [Releases](https://github.com/harisen/unite-pick-vision/releases) から最新の `unite-pick-vision-vX.X.X-win64.zip` をダウンロード
+2. zipを展開
+3. `Unite Pick Vision.exe` をダブルクリック
+
+Node.js不要。展開して実行するだけ。
+
+### 方法B: ソースから起動（開発者向け）
 
 ```bash
 git clone https://github.com/harisen/unite-pick-vision.git
 cd unite-pick-vision
 npm install
+npm start
 ```
 
-### 2. OBS WebSocket の確認
+### OBS WebSocket の確認
 
 OBS Studio → ツール → WebSocket サーバー設定
 - サーバーを有効にする: ON
