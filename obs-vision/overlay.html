@@ -218,11 +218,13 @@
       return assignments;
     }
 
+    function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
     function ccTagsHtml(ccList, cls) {
       if (!ccList?.length) return '';
       return ccList.map(cc => {
         const type = HARD_CC.has(cc) ? 'hard' : 'soft';
-        return `<span class="${cls} ${type}">${cc}</span>`;
+        return `<span class="${cls} ${type}">${esc(cc)}</span>`;
       }).join('');
     }
 
@@ -260,8 +262,8 @@
           const card = document.createElement('div');
           card.className = `top-card ${cls}`;
           card.innerHTML = `
-            ${p.icon ? `<img src="${p.icon}" alt="${p.name}" onerror="this.style.display='none'">` : `<div class="no-icon">?</div>`}
-            <div class="card-name">${p.name}</div>
+            ${p.icon ? `<img src="${p.icon}" alt="${esc(p.name)}" onerror="this.style.display='none'">` : `<div class="no-icon">?</div>`}
+            <div class="card-name">${esc(p.name)}</div>
             <div class="card-role">${ROLE_DISPLAY[p.role] || p.role}</div>
             ${p.cc?.length ? `<div class="card-cc">${ccTagsHtml(p.cc, 'cc-tag')}</div>` : ''}
           `;
@@ -280,9 +282,9 @@
         const row = document.createElement('div');
         row.className = 'pokemon-row';
         row.innerHTML = `
-          ${p.icon ? `<img src="${p.icon}" alt="${p.name}">` : ''}
+          ${p.icon ? `<img src="${p.icon}" alt="${esc(p.name)}">` : ''}
           <div class="pokemon-info">
-            <div class="pokemon-name">${p.name}</div>
+            <div class="pokemon-name">${esc(p.name)}</div>
             <div class="pokemon-tags">
               <span class="tag-role" style="background:${color}">${ROLE_DISPLAY[p.role] || p.role}</span>
               ${ccTagsHtml(p.cc, 'tag-cc')}
@@ -295,7 +297,8 @@
 
     const es = new EventSource('/events');
     es.onmessage = (e) => {
-      const data = JSON.parse(e.data);
+      let data;
+      try { data = JSON.parse(e.data); } catch { return; }
 
       if (data.type === 'status') dot.className = 'active';
 

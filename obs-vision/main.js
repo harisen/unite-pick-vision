@@ -30,7 +30,7 @@ const MATCH_THRESHOLD = 55;
 const IS_MAC = process.platform === 'darwin';
 
 let tray = null, settingsWin = null, obsConnected = false, httpServer = null, pollTimer = null;
-let captureSourceName_g = '';
+let captureSourceName_g = '', pollGeneration = 0;
 const clients = [];
 const obs = new OBSWebSocket();
 
@@ -53,18 +53,25 @@ function createCircleIcon(r, g, b) {
 const ICON = { gray: createCircleIcon(150,150,150), yellow: createCircleIcon(230,180,40), green: createCircleIcon(50,200,80), red: createCircleIcon(220,60,60) };
 
 function setTrayStatus(s, t) { if (tray) { tray.setImage(ICON[s]||ICON.gray); tray.setToolTip(`obs-vision\n${t}`); } }
-function broadcast(data) { const p = `data: ${JSON.stringify(data)}\n\n`; clients.forEach(r => r.write(p)); }
+function broadcast(data) {
+  const p = `data: ${JSON.stringify(data)}\n\n`;
+  for (let i = clients.length - 1; i >= 0; i--) {
+    try { clients[i].write(p); } catch { clients.splice(i, 1); }
+  }
+}
 
 // -----------------------------------------------
 // テンプレートマッチング
 // -----------------------------------------------
-const RAW_SLOTS = (process.env.SLOT_REGIONS ? JSON.parse(process.env.SLOT_REGIONS) : [
+let RAW_SLOTS;
+try { RAW_SLOTS = process.env.SLOT_REGIONS ? JSON.parse(process.env.SLOT_REGIONS) : null; } catch (e) { console.error('[SLOT_REGIONS] JSON不正、デフォルト使用:', e.message); RAW_SLOTS = null; }
+if (!RAW_SLOTS) RAW_SLOTS = [
   { x: 0.9227, y: 0.125,  w: 0.0594, h: 0.1028 },
   { x: 0.9227, y: 0.2594, w: 0.0594, h: 0.1028 },
   { x: 0.9227, y: 0.3937, w: 0.0594, h: 0.1028 },
   { x: 0.9227, y: 0.5281, w: 0.0594, h: 0.1028 },
   { x: 0.9227, y: 0.6625, w: 0.0594, h: 0.1028 },
-]);
+];
 
 const POKEMON_TEMPLATES = {};
 let UNPICKED_TEMPLATE = null;
@@ -185,7 +192,7 @@ class PickDetector {
   // 2フレーム連続同一 → 確定
   updateSlot(i, result) {
     if (this.locked[i]) return;
-    if (!result?.matched || result.gap < 2) { this.prev[i] = null; return; }
+    if (!result?.matched || result.gap < 3) { this.prev[i] = null; return; }
     if (this.locked.includes(result.name)) { this.prev[i] = null; return; }
     if (this.prev[i] === result.name) {
       this.locked[i] = result.name;
@@ -204,12 +211,6 @@ class PickDetector {
     setTrayStatus('green', `確定: ${names}`);
     if (this.hideTimer) clearTimeout(this.hideTimer);
     if (this.timeoutTimer) clearTimeout(this.timeoutTimer);
-    this.hideTimer = setTimeout(() => {
-      console.log('[自動非表示]');
-      broadcast({ type: 'gameplay' });
-      this.reset();
-      setTrayStatus('green', '待機中');
-    }, 45000);
   }
 }
 
@@ -218,6 +219,8 @@ class PickDetector {
 // -----------------------------------------------
 async function connectOBS() {
   if (pollTimer) { clearTimeout(pollTimer); pollTimer = null; }
+  pollGeneration++;
+  const myGeneration = pollGeneration;
   setTrayStatus('yellow', '接続中...');
   try {
     await obs.connect(process.env.OBS_WS_URL, process.env.OBS_WS_PASSWORD);
@@ -237,6 +240,7 @@ async function connectOBS() {
     const det = new PickDetector();
 
     const poll = async () => {
+      if (myGeneration !== pollGeneration) return; // 古いポーリングを停止
       try {
         const { imageData } = await obs.call('GetSourceScreenshot', {
           sourceName: captureName, imageFormat: 'jpg', imageWidth: 1280, imageHeight: 720, imageCompressionQuality: 90,
@@ -259,11 +263,18 @@ async function connectOBS() {
         const pickPhase = det.pickPhaseStarted && isPickPhase(img);
         if (pickPhase) det.notPickCount = 0; else det.notPickCount++;
 
-        // 新試合検出（confirmed中に空>=3）
-        if (det.state === 'confirmed' && unpickedCount >= 3) {
-          console.log('[リセット] 新しい試合検出');
-          det.reset();
-          broadcast({ type: 'gameplay' });
+        // confirmed中: シーン切り替わり検出（ピックフェイズ終了 or 新試合）
+        if (det.state === 'confirmed') {
+          if (unpickedCount >= 3) {
+            console.log('[リセット] 新しい試合検出');
+            det.reset();
+            broadcast({ type: 'gameplay' });
+          } else if (det.notPickCount >= 3) {
+            console.log('[非表示] シーン切り替わり検出');
+            broadcast({ type: 'gameplay' });
+            det.reset();
+            setTrayStatus('green', '待機中');
+          }
         }
 
         // ピック画面でない & idle → スキップ
@@ -388,12 +399,26 @@ app.whenReady().then(() => {
   server.get('/config', (_, res) => res.json({ OBS_WS_URL: process.env.OBS_WS_URL, OBS_WS_PASSWORD: process.env.OBS_WS_PASSWORD ? '********' : '', POLL_INTERVAL_MS: process.env.POLL_INTERVAL_MS }));
   server.use(express.json());
   server.post('/config', (req, res) => {
-    const lines = [`OBS_WS_URL=${req.body.OBS_WS_URL||'ws://localhost:4455'}`, `OBS_WS_PASSWORD=${req.body.OBS_WS_PASSWORD||process.env.OBS_WS_PASSWORD||''}`, `POLL_INTERVAL_MS=${req.body.POLL_INTERVAL_MS||'3000'}`, `PORT=${PORT}`];
-    if (req.body.SLOT_REGIONS) lines.push(`SLOT_REGIONS=${req.body.SLOT_REGIONS}`);
     try {
-      fs.writeFileSync(path.join(__dirname, '.env'), lines.join('\n') + '\n', 'utf-8');
+      // 既存の.envを読み込んでマージ
+      const existing = {};
+      if (fs.existsSync(envPath)) {
+        fs.readFileSync(envPath, 'utf-8').split('\n').forEach(l => {
+          const idx = l.indexOf('=');
+          if (idx > 0) existing[l.substring(0, idx).trim()] = l.substring(idx + 1);
+        });
+      }
+      // POSTされた値で上書き
+      if (req.body.OBS_WS_URL) existing.OBS_WS_URL = req.body.OBS_WS_URL;
+      if (req.body.OBS_WS_PASSWORD && req.body.OBS_WS_PASSWORD !== '********') existing.OBS_WS_PASSWORD = req.body.OBS_WS_PASSWORD;
+      if (req.body.POLL_INTERVAL_MS) existing.POLL_INTERVAL_MS = req.body.POLL_INTERVAL_MS;
+      if (req.body.SLOT_REGIONS) existing.SLOT_REGIONS = req.body.SLOT_REGIONS;
+      existing.PORT = String(PORT);
+
+      const lines = Object.entries(existing).map(([k, v]) => `${k}=${v}`);
+      fs.writeFileSync(envPath, lines.join('\n') + '\n', 'utf-8');
       // メモリ上のprocess.envも更新
-      lines.forEach(l => { const [k,v] = l.split('='); if (k && v !== undefined) process.env[k] = v; });
+      Object.entries(existing).forEach(([k, v]) => { process.env[k] = v; });
       console.log('[設定] .env保存完了');
       res.json({ ok: true });
     } catch (e) {

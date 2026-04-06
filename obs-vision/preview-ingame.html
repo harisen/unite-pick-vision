@@ -61,6 +61,7 @@
     const ROLE_CLASS = { 'アタッカー': 'role-attacker', 'ディフェンダー': 'role-defender', 'スピーダー': 'role-speedster', 'バランス': 'role-allrounder', 'サポート': 'role-supporter' };
     const HARD_CC = new Set(['スタン', '眠り', '凍り', '拘束']);
     const LANE_LABEL = { '上': '⬆ 上ルート', '中央': '🌿 中央', '下': '⬇ 下ルート' };
+    function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
     const LANE_SLOTS = [
       { lane: '中央', scores: { 'スピーダー': 5, 'バランス': 3, 'アタッカー': 1, 'ディフェンダー': 0, 'サポート': 0 } },
@@ -122,13 +123,13 @@
 
         members.forEach(p => {
           const cls = ROLE_CLASS[p.role] || '';
-          const ccHtml = (p.cc || []).map(cc => `<span class="cc-tag ${HARD_CC.has(cc)?'hard':'soft'}">${cc}</span>`).join('');
+          const ccHtml = (p.cc || []).map(cc => `<span class="cc-tag ${HARD_CC.has(cc)?'hard':'soft'}">${esc(cc)}</span>`).join('');
           const card = document.createElement('div');
           card.className = `top-card ${cls}`;
           card.innerHTML = `
-            <img src="${p.icon}">
-            <div class="card-name">${p.name}</div>
-            <div class="card-role">${ROLE_DISPLAY[p.role] || p.role}</div>
+            <img src="${p.icon}" alt="${esc(p.name)}">
+            <div class="card-name">${esc(p.name)}</div>
+            <div class="card-role">${esc(ROLE_DISPLAY[p.role] || p.role)}</div>
             <div class="card-cc">${ccHtml}</div>
           `;
           group.appendChild(card);
