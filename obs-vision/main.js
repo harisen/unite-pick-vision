@@ -211,6 +211,12 @@ class PickDetector {
     setTrayStatus('green', `確定: ${names}`);
     if (this.hideTimer) clearTimeout(this.hideTimer);
     if (this.timeoutTimer) clearTimeout(this.timeoutTimer);
+    this.hideTimer = setTimeout(() => {
+      console.log('[自動非表示] 60秒経過');
+      broadcast({ type: 'gameplay' });
+      this.reset();
+      setTrayStatus('green', '待機中');
+    }, 60000);
   }
 }
 
@@ -263,18 +269,12 @@ async function connectOBS() {
         const pickPhase = det.pickPhaseStarted && isPickPhase(img);
         if (pickPhase) det.notPickCount = 0; else det.notPickCount++;
 
-        // confirmed中: シーン切り替わり検出（ピックフェイズ終了 or 新試合）
-        if (det.state === 'confirmed') {
-          if (unpickedCount >= 3) {
-            console.log('[リセット] 新しい試合検出');
-            det.reset();
-            broadcast({ type: 'gameplay' });
-          } else if (det.notPickCount >= 3) {
-            console.log('[非表示] シーン切り替わり検出');
-            broadcast({ type: 'gameplay' });
-            det.reset();
-            setTrayStatus('green', '待機中');
-          }
+        // confirmed中: 新試合検出でのみリセット（空スロット>=3 = 次のピック画面）
+        if (det.state === 'confirmed' && unpickedCount >= 3) {
+          console.log('[リセット] 新しい試合検出');
+          broadcast({ type: 'gameplay' });
+          det.reset();
+          setTrayStatus('green', '待機中');
         }
 
         // ピック画面でない & idle → スキップ
@@ -308,13 +308,6 @@ async function connectOBS() {
         if (det.lockedCount >= 1 && det.state !== 'confirmed') {
           if (det.state !== 'picking') {
             det.state = 'picking';
-            // 60秒タイムアウト: 5体揃わなくても確定
-            det.timeoutTimer = setTimeout(() => {
-              if (det.state === 'picking' && det.lockedCount >= 4) {
-                console.log(`[タイムアウト] ${det.lockedCount}体で確定`);
-                det.confirm();
-              }
-            }, 60000);
           }
           broadcast({ type: 'pick_update', enemyTeam: det.team });
         }
