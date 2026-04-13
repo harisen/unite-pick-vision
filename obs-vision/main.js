@@ -33,8 +33,42 @@ const PINK_CONFIRM_FRAMES = 5; // 2.5秒 @ 500ms間隔
 
 let tray = null, settingsWin = null, obsConnected = false, httpServer = null, pollTimer = null;
 let captureSourceName_g = '', pollGeneration = 0;
+let captureSceneItemId_g = null;
+let captureTransform_g = null;
+let canvasWidth_g = 1280, canvasHeight_g = 720;
+let currentSceneName_g = '';
 const clients = [];
 const obs = new OBSWebSocket();
+
+// キャプチャソースのOBSシーン内バウンディングボックスを計算
+function getCaptureBBox() {
+  if (!captureTransform_g) return null;
+  const t = captureTransform_g;
+  const hAlign = t.alignment & 3;   // 0=center 1=left 2=right
+  const vAlign = t.alignment & 12;  // 0=center 4=top  8=bottom
+  let left = t.positionX, top = t.positionY;
+  if (hAlign === 0) left -= t.width / 2; else if (hAlign === 2) left -= t.width;
+  if (vAlign === 0) top  -= t.height / 2; else if (vAlign === 8) top -= t.height;
+  return {
+    x: Math.max(0, Math.floor(left)),
+    y: Math.max(0, Math.floor(top)),
+    width:  Math.min(Math.floor(t.width),  canvasWidth_g),
+    height: Math.min(Math.floor(t.height), canvasHeight_g),
+  };
+}
+
+async function refreshCaptureTransform() {
+  if (!captureSceneItemId_g || !currentSceneName_g) return;
+  try {
+    const { sceneItemTransform } = await obs.call('GetSceneItemTransform', {
+      sceneName: currentSceneName_g, sceneItemId: captureSceneItemId_g,
+    });
+    captureTransform_g = sceneItemTransform;
+    const b = getCaptureBBox();
+    console.log(`[OBS] キャプチャ領域更新: x=${b.x} y=${b.y} w=${b.width} h=${b.height}`);
+    setTrayStatus('green', `キャプチャ領域: ${b.width}x${b.height}`);
+  } catch (e) { console.warn('[OBS] トランスフォーム取得失敗:', e.message); }
+}
 
 // -----------------------------------------------
 // トレイアイコン（BGRA on Windows）
@@ -96,8 +130,9 @@ function loadTemplates() {
 }
 
 function cropSlot(img, region) {
-  const x = Math.floor(region.x * 1280), y = Math.floor(region.y * 720);
-  const w = Math.max(1, Math.floor(region.w * 1280)), h = Math.max(1, Math.floor(region.h * 720));
+  const { width, height } = img.getSize();
+  const x = Math.floor(region.x * width), y = Math.floor(region.y * height);
+  const w = Math.max(1, Math.floor(region.w * width)), h = Math.max(1, Math.floor(region.h * height));
   return img.crop({ x, y, width: w, height: h }).resize({ width: TEMPLATE_SIZE, height: TEMPLATE_SIZE }).toBitmap();
 }
 
@@ -271,6 +306,7 @@ async function connectOBS() {
     broadcast({ type: 'status', message: 'OBS接続済み' });
 
     const { currentProgramSceneName } = await obs.call('GetCurrentProgramScene');
+    currentSceneName_g = currentProgramSceneName;
     await setupOBSSource(currentProgramSceneName);
     const { sceneItems } = await obs.call('GetSceneItemList', { sceneName: currentProgramSceneName });
     const src = sceneItems.find(i => ['dshow_input','v4l2_input','av_capture_input','window_capture','game_capture'].includes(i.inputKind));
@@ -278,17 +314,35 @@ async function connectOBS() {
     captureSourceName_g = captureName;
     console.log('[OBS] キャプチャソース:', captureName);
 
+    // キャンバスサイズ & キャプチャソースのシーン内トランスフォームを取得
+    const { baseWidth, baseHeight } = await obs.call('GetVideoSettings');
+    canvasWidth_g = baseWidth; canvasHeight_g = baseHeight;
+    const captureItem = sceneItems.find(i => i.sourceName === captureName);
+    if (captureItem) {
+      captureSceneItemId_g = captureItem.sceneItemId;
+      await refreshCaptureTransform();
+    }
+
     const POLL = { idle: parseInt(process.env.POLL_INTERVAL_MS) || 3000, picking: 500, confirmed: 5000 };
     const det = new PickDetector();
 
     const poll = async () => {
       if (myGeneration !== pollGeneration) return; // 古いポーリングを停止
       try {
+        // シーン全体を撮影してキャプチャソース領域を切り抜く（レイアウト変更に自動対応）
+        const bbox = getCaptureBBox();
         const { imageData } = await obs.call('GetSourceScreenshot', {
-          sourceName: captureName, imageFormat: 'jpg', imageWidth: 1280, imageHeight: 720, imageCompressionQuality: 90,
+          sourceName: bbox ? currentSceneName_g : captureName,
+          imageFormat: 'jpg',
+          imageWidth:  bbox ? canvasWidth_g  : 1280,
+          imageHeight: bbox ? canvasHeight_g : 720,
+          imageCompressionQuality: 90,
         });
         const jpegBuf = Buffer.from(imageData.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-        const img = nativeImage.createFromBuffer(jpegBuf);
+        let img = nativeImage.createFromBuffer(jpegBuf);
+        if (bbox && bbox.width > 0 && bbox.height > 0) {
+          img = img.crop({ x: bbox.x, y: bbox.y, width: bbox.width, height: bbox.height });
+        }
 
         // 初回スクショ保存
         if (!global._debugSaved) {
@@ -432,6 +486,17 @@ app.whenReady().then(() => {
     } catch (e) { res.status(500).json({ error: e.message }); }
   });
 
+  // OBSのソース一覧を返す（設定画面のキャプチャソース選択用）
+  server.get('/sources', async (_, res) => {
+    try {
+      const { sceneItems } = await obs.call('GetSceneItemList', { sceneName: currentSceneName_g });
+      const sources = sceneItems
+        .filter(i => i.sourceName !== SOURCE_NAME)
+        .map(i => ({ name: i.sourceName, kind: i.inputKind || '' }));
+      res.json({ sources, current: captureSourceName_g });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+  });
+
   server.get('/events', (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -456,6 +521,7 @@ app.whenReady().then(() => {
       // POSTされた値で上書き
       if (req.body.OBS_WS_URL) existing.OBS_WS_URL = req.body.OBS_WS_URL;
       if (req.body.OBS_WS_PASSWORD && req.body.OBS_WS_PASSWORD !== '********') existing.OBS_WS_PASSWORD = req.body.OBS_WS_PASSWORD;
+      if (req.body.CAPTURE_SOURCE) existing.CAPTURE_SOURCE = req.body.CAPTURE_SOURCE;
       if (req.body.POLL_INTERVAL_MS) existing.POLL_INTERVAL_MS = req.body.POLL_INTERVAL_MS;
       if (req.body.SLOT_REGIONS) existing.SLOT_REGIONS = req.body.SLOT_REGIONS;
       existing.PORT = String(PORT);
@@ -541,6 +607,7 @@ app.whenReady().then(() => {
     }
     items.push(
       { label: '設定', click: openSettings },
+      { label: '↻ キャプチャ位置を更新', click: refreshCaptureTransform },
       { label: 'OBSに再接続', click: () => { obs.disconnect(); connectOBS(); } },
       { type: 'separator' },
       { label: '終了', click: () => app.quit() }
