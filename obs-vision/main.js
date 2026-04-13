@@ -405,8 +405,6 @@ app.whenReady().then(() => {
   });
   server.get('/settings.html', (_, res) => res.sendFile(path.join(__dirname, 'settings.html')));
   server.get('/calibrate.html', (_, res) => res.sendFile(path.join(__dirname, 'calibrate.html')));
-  server.get('/preview.html', (_, res) => res.sendFile(path.join(__dirname, 'preview-slots.html')));
-  server.get('/preview-ingame.html', (_, res) => res.sendFile(path.join(__dirname, 'preview-ingame.html')));
   server.get('/pokemon-db.json', (_, res) => res.sendFile(path.join(__dirname, 'pokemon-db.json')));
   server.use('/debug', express.static(path.join(__dirname, 'debug')));
 
