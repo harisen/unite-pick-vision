@@ -55,7 +55,7 @@ const CC_MAP = {
   'Metagross': ['スタン'], 'Mew': ['スロー'], 'MewtwoX': ['スタン'], 'MewtwoY': ['スロー'],
   'Mimikyu': ['スタン'], 'Miraidon': ['スタン', 'スロー'], 'Moltres': ['スロー'],
   'Mr.Mime': ['スタン', '拘束'], 'Ninetales': ['凍り', 'スロー'], 'Pawmot': ['スタン'],
-  'Pikachu': ['スタン'], 'Psyduck': ['スロー'], 'Raichu': ['スタン', 'スロー'],
+  'Pikachu': ['スタン'], 'Psyduck': ['スロー'], 'Raichu': ['スロー'],
   'Rapidash': ['スロー'], 'Sableye': ['スロー'], 'Scizor': ['スロー'], 'Scyther': ['スロー'],
   'Sirfetchd': ['スタン'], 'Slowbro': ['スタン', '拘束'], 'Snorlax': ['ノックバック', 'スタン'],
   'Suicune': ['凍り', 'ノックバック'], 'Sylveon': ['スロー'], 'Talonflame': ['ノックバック'],
@@ -63,7 +63,7 @@ const CC_MAP = {
   'Tsareena': ['スタン'], 'Tyranitar': ['スタン', 'スロー'], 'Umbreon': ['スロー'],
   'Urshifu': ['スタン'], 'Vaporeon': ['スロー'], 'Venusaur': ['スロー'],
   'Wigglytuff': ['眠り', 'スタン'], 'Zacian': ['ノックバック'], 'Zapdos': ['スタン'],
-  'Zeraora': ['スロー'], 'Zoroark': ['スロー'],
+  'Zeraora': ['スロー'], 'Zoroark': ['スロー'], 'Articuno': ['凍り', 'スロー'],
   // メガ進化
   'Mega-Charizard-X': ['ノックバック'], 'Mega-Charizard-Y': ['ノックバック'],
   'Mega-Gyarados': ['スタン', 'ノックバック'], 'Mega-Lucario': ['ノックバック', 'スタン'],

@@ -28,6 +28,8 @@ const SOURCE_NAME = 'obs-vision overlay';
 const TEMPLATE_SIZE = 48;
 const MATCH_THRESHOLD = 55;
 const IS_MAC = process.platform === 'darwin';
+const PINK_POKEMON = new Set(['ピクシー', 'ミュウ', 'ハピナス', 'プクリン']);
+const PINK_CONFIRM_FRAMES = 5; // 2.5秒 @ 500ms間隔
 
 let tray = null, settingsWin = null, obsConnected = false, httpServer = null, pollTimer = null;
 let captureSourceName_g = '', pollGeneration = 0;
@@ -142,6 +144,23 @@ function isPickPhase(img) {
   return false;
 }
 
+function isCutInScene(img) {
+  let orangeSlots = 0;
+  for (const region of RAW_SLOTS) {
+    const pixels = cropSlot(img, region);
+    let orangeCount = 0;
+    const total = TEMPLATE_SIZE * TEMPLATE_SIZE;
+    for (let i = 0; i < pixels.length; i += 4) {
+      const r = IS_MAC ? pixels[i] : pixels[i+2];
+      const g = pixels[i+1];
+      const b = IS_MAC ? pixels[i+2] : pixels[i];
+      if (r > 180 && g > 80 && g < 180 && b < 100) orangeCount++;
+    }
+    if (orangeCount > total * 0.3) orangeSlots++;
+  }
+  return orangeSlots >= 3;
+}
+
 function dedupeResults(raw) {
   const matched = raw.map(r => r.matched ? r : null);
   const counts = {};
@@ -179,26 +198,43 @@ class PickDetector {
   reset() {
     this.state = 'idle'; // idle → picking → confirmed
     this.locked = [null, null, null, null, null]; // 確定済みポケモン名
-    this.prev   = [null, null, null, null, null]; // 前フレーム結果（2連続チェック）
+    this.prevName = [null, null, null, null, null]; // 前フレーム結果
+    this.consecCount = [0, 0, 0, 0, 0]; // 連続一致カウント
     this.pickPhaseStarted = false;
     this.notPickCount = 0;
+    this.lastCutInTime = null;
     if (this.hideTimer) { clearTimeout(this.hideTimer); this.hideTimer = null; }
     if (this.timeoutTimer) { clearTimeout(this.timeoutTimer); this.timeoutTimer = null; }
+  }
+
+  resetConsecCounts() {
+    this.prevName.fill(null);
+    this.consecCount.fill(0);
   }
 
   get lockedCount() { return this.locked.filter(Boolean).length; }
   get team() { return this.locked.filter(Boolean).map(n => buildTeamEntry(n)); }
 
-  // 2フレーム連続同一 → 確定
+  // 連続一致で確定（ピンク系は4フレーム、通常は2フレーム）
   updateSlot(i, result) {
     if (this.locked[i]) return;
-    if (!result?.matched || result.gap < 3) { this.prev[i] = null; return; }
-    if (this.locked.includes(result.name)) { this.prev[i] = null; return; }
-    if (this.prev[i] === result.name) {
-      this.locked[i] = result.name;
-      console.log(`[スロット${i}確定] ${result.name}(${result.score.toFixed(0)}g${result.gap.toFixed(0)})`);
+    if (!result?.matched || result.gap < 3) {
+      this.prevName[i] = null; this.consecCount[i] = 0; return;
     }
-    this.prev[i] = result.name;
+    if (this.locked.includes(result.name)) {
+      this.prevName[i] = null; this.consecCount[i] = 0; return;
+    }
+    if (this.prevName[i] === result.name) {
+      this.consecCount[i]++;
+      const needed = PINK_POKEMON.has(result.name) ? PINK_CONFIRM_FRAMES : 2;
+      if (this.consecCount[i] >= needed) {
+        this.locked[i] = result.name;
+        console.log(`[スロット${i}確定] ${result.name}(${result.score.toFixed(0)}g${result.gap.toFixed(0)}) ${this.consecCount[i]}F`);
+      }
+    } else {
+      this.prevName[i] = result.name;
+      this.consecCount[i] = 1;
+    }
   }
 
   confirm() {
@@ -283,6 +319,21 @@ async function connectOBS() {
           return;
         }
 
+        // --- カットイン検出 ---
+        if (isCutInScene(img)) {
+          det.resetConsecCounts();
+          det.lastCutInTime = Date.now();
+          console.log(`[${det.state}] カットイン検出 — スキップ`);
+          pollTimer = setTimeout(poll, POLL.picking);
+          return;
+        }
+        // カットイン後2.5秒はバッファ（不安定なフレームを無視）
+        if (det.lastCutInTime && (Date.now() - det.lastCutInTime) < 2500) {
+          det.resetConsecCounts();
+          pollTimer = setTimeout(poll, POLL.picking);
+          return;
+        }
+
         // --- テンプレートマッチング & 各スロット個別確定 ---
         const rawResults = matchAllSlots(img);
         const results = dedupeResults(rawResults);
@@ -348,7 +399,10 @@ app.whenReady().then(() => {
 
   const server = express();
   server.use('/images', express.static(path.join(__dirname, 'images')));
-  server.get('/overlay.html', (_, res) => res.sendFile(path.join(__dirname, 'overlay.html')));
+  server.get('/overlay.html', (_, res) => {
+    res.setHeader('Cache-Control', 'no-store');
+    res.sendFile(path.join(__dirname, 'overlay.html'));
+  });
   server.get('/settings.html', (_, res) => res.sendFile(path.join(__dirname, 'settings.html')));
   server.get('/calibrate.html', (_, res) => res.sendFile(path.join(__dirname, 'calibrate.html')));
   server.get('/preview.html', (_, res) => res.sendFile(path.join(__dirname, 'preview-slots.html')));

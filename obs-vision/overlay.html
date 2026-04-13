@@ -173,9 +173,57 @@
     #dot.active { background: #4caf50; }
     #dot.picking { background: #e67e22; animation: blink 0.8s infinite; }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* =============================================
+       ハリーセン 起動中インジケーター（右上固定・常時表示）
+    ============================================= */
+    @keyframes harisendance {
+      0%   { transform: translateY(0px) rotate(-4deg); }
+      25%  { transform: translateY(-8px) rotate(4deg); }
+      50%  { transform: translateY(-12px) rotate(-4deg); }
+      75%  { transform: translateY(-8px) rotate(4deg); }
+      100% { transform: translateY(0px) rotate(-4deg); }
+    }
+    #harisen {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 1;
+    }
+    #harisen img {
+      width: 56px;
+      height: 56px;
+      image-rendering: pixelated;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.85));
+    }
+    @keyframes rainbow {
+      0%   { filter: drop-shadow(0 2px 6px rgba(0,0,0,0.85)) hue-rotate(0deg); }
+      100% { filter: drop-shadow(0 2px 6px rgba(0,0,0,0.85)) hue-rotate(360deg); }
+    }
+    #harisen.dancing img {
+      animation: harisendance 1.2s ease-in-out infinite, rainbow 1.5s linear infinite;
+    }
+    #harisen .harisen-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.85);
+      text-shadow: 0 1px 3px rgba(0,0,0,1);
+      letter-spacing: 0.5px;
+    }
   </style>
 </head>
 <body>
+  <div id="harisen">
+    <img id="harisen-img" src="/images/harisen_still.png" alt="obs-vision">
+    <div class="harisen-label">obs-vision</div>
+  </div>
+
   <div id="top-bar"></div>
 
   <div id="notepad">
@@ -232,6 +280,39 @@
     const notepad = document.getElementById('notepad');
     const notepadBody = document.getElementById('notepad-body');
     const dot = document.getElementById('dot');
+    const harisen = document.getElementById('harisen');
+    const harisenImg = document.getElementById('harisen-img');
+
+    // -----------------------------------------------
+    // 定期リフレッシュ・スタック検出
+    // -----------------------------------------------
+    const IDLE_REFRESH_MS  = 30 * 60 * 1000; // アイドル30分でリロード
+    const STUCK_MS         = 60 * 1000;       // 1-4体検出が1分続いたらリロード
+    let idleRefreshTimer = null;
+    let stuckTimer = null;
+
+    function startIdleRefresh() {
+      if (idleRefreshTimer) clearTimeout(idleRefreshTimer);
+      idleRefreshTimer = setTimeout(() => {
+        console.log('[overlay] アイドル30分経過 → リロード');
+        location.reload();
+      }, IDLE_REFRESH_MS);
+    }
+    function cancelIdleRefresh() {
+      if (idleRefreshTimer) { clearTimeout(idleRefreshTimer); idleRefreshTimer = null; }
+    }
+    function startStuckTimer() {
+      if (stuckTimer) return; // 既に動いている
+      stuckTimer = setTimeout(() => {
+        console.log('[overlay] スタック: 1分以上1-4体検出継続 → リロード');
+        location.reload();
+      }, STUCK_MS);
+    }
+    function cancelStuckTimer() {
+      if (stuckTimer) { clearTimeout(stuckTimer); stuckTimer = null; }
+    }
+
+    startIdleRefresh(); // 起動時スタート
 
     function renderTopBar(team) {
       if (!team?.length) return;
@@ -307,6 +388,10 @@
         notepad.className = 'visible';
         topBar.className = '';
         dot.className = 'picking';
+        harisenImg.src = '/images/harisen.gif';
+        harisen.classList.add('dancing');
+        cancelIdleRefresh();
+        startStuckTimer(); // 1-4体検出が1分続いたらリロード
       }
 
       if (data.type === 'preparation') {
@@ -317,15 +402,23 @@
         topBar.className = 'visible';
         notepad.className = '';
         dot.className = 'active';
+        harisenImg.src = '/images/harisen_still.png';
+        harisen.classList.remove('dancing');
+        cancelStuckTimer();
+        cancelIdleRefresh(); // 表示中はリフレッシュしない
       }
 
       if (data.type === 'gameplay') {
         topBar.className = '';
         notepad.className = '';
         dot.className = '';
+        harisenImg.src = '/images/harisen_still.png';
+        harisen.classList.remove('dancing');
+        cancelStuckTimer();
+        startIdleRefresh(); // アイドル復帰 → 30分タイマー再開
       }
     };
-    es.onerror = () => { dot.className = ''; };
+    es.onerror = () => { dot.className = ''; startIdleRefresh(); };
 
     // デバッグ: ?debug でスロット検出範囲を赤枠表示
     if (new URLSearchParams(location.search).has('debug')) {

@@ -665,7 +665,6 @@
     "role": "アタッカー",
     "range": "遠距離",
     "cc": [
-      "スタン",
       "スロー"
     ],
     "icon": "images/t_Square_AlolanRaichu.png",
@@ -916,6 +915,17 @@
       "スロー"
     ],
     "icon": "images/t_Square_Moltres.png",
+    "jungle": false
+  },
+  "フリーザー": {
+    "en": "Articuno",
+    "role": "ディフェンダー",
+    "range": "遠距離",
+    "cc": [
+      "凍り",
+      "スロー"
+    ],
+    "icon": "images/t_Square_Articuno.png",
     "jungle": false
   }
 }

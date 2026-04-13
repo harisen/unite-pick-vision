@@ -1,6 +1,6 @@
 {
   "name": "obs-vision",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "ポケモンユナイト構成分析オーバーレイ",
   "main": "main.js",
   "scripts": {
@@ -36,7 +36,10 @@
       "node_modules/**"
     ],
     "extraResources": [
-      { "from": "images", "to": "images" }
+      {
+        "from": "images",
+        "to": "images"
+      }
     ]
   }
 }
