@@ -486,20 +486,23 @@ app.whenReady().then(() => {
 
   const TEST_SOURCE = 'obs-vision テスト動画';
   let testMode = false;
+  let currentTestVideo = '';
 
-  async function startTestMode() {
+  async function startTestMode(specificFile = null) {
     try {
       const scene = (await obs.call('GetCurrentProgramScene')).currentProgramSceneName;
       try { await obs.call('RemoveInput', { inputName: TEST_SOURCE }); } catch {}
       await new Promise(r => setTimeout(r, 500));
       const videos = (process.env.TEST_VIDEOS || '').split(';').filter(Boolean);
-      const file = videos.length ? videos[Math.floor(Math.random() * videos.length)] : '';
+      const file = specificFile || (videos.length ? videos[Math.floor(Math.random() * videos.length)] : '');
+      currentTestVideo = file;
       const { sceneItemId } = await obs.call('CreateInput', { sceneName: scene, inputName: TEST_SOURCE, inputKind: 'ffmpeg_source', inputSettings: { local_file: file, looping: true, restart_on_activate: true }, sceneItemEnabled: true });
       const { baseWidth, baseHeight } = await obs.call('GetVideoSettings');
       await obs.call('SetSceneItemTransform', { sceneName: scene, sceneItemId, sceneItemTransform: { boundsType: 'OBS_BOUNDS_STRETCH', boundsWidth: baseWidth, boundsHeight: baseHeight, boundsAlignment: 0 } });
+      // オーバーレイソースの1つ下（直下）に配置
       const items = (await obs.call('GetSceneItemList', { sceneName: scene })).sceneItems;
       const overlay = items.find(i => i.sourceName === SOURCE_NAME);
-      if (overlay) await obs.call('SetSceneItemIndex', { sceneName: scene, sceneItemId, sceneItemIndex: Math.max(0, overlay.sceneItemIndex - 1) });
+      if (overlay) await obs.call('SetSceneItemIndex', { sceneName: scene, sceneItemId, sceneItemIndex: overlay.sceneItemIndex });
       process.env.CAPTURE_SOURCE = TEST_SOURCE;
       testMode = true;
       console.log('[テスト] 開始:', file);
@@ -507,25 +510,45 @@ app.whenReady().then(() => {
     } catch (e) { console.error('[テスト]', e.message); }
   }
 
+  async function switchTestVideo() {
+    try {
+      const videos = (process.env.TEST_VIDEOS || '').split(';').filter(Boolean);
+      if (videos.length < 2) { console.log('[テスト] 切り替え可能な動画が1本以下'); return; }
+      const others = videos.filter(v => v !== currentTestVideo);
+      const file = others[Math.floor(Math.random() * others.length)];
+      console.log('[テスト] 動画切り替え:', file);
+      await startTestMode(file);
+    } catch (e) { console.error('[テスト 切り替え]', e.message); }
+  }
+
   async function stopTestMode() {
     try {
       await obs.call('RemoveInput', { inputName: TEST_SOURCE }).catch(() => {});
       delete process.env.CAPTURE_SOURCE;
       testMode = false;
+      currentTestVideo = '';
       console.log('[テスト] 停止');
       obs.disconnect(); await connectOBS();
     } catch (e) { console.error('[テスト]', e.message); }
   }
 
-  const buildMenu = () => Menu.buildFromTemplate([
-    { label: obsConnected ? '● 動作中' : '○ 未接続', enabled: false },
-    { type: 'separator' },
-    { label: testMode ? '■ テスト停止' : '▶ テスト動画で検証', click: () => testMode ? stopTestMode() : startTestMode() },
-    { label: '設定', click: openSettings },
-    { label: 'OBSに再接続', click: () => { obs.disconnect(); connectOBS(); } },
-    { type: 'separator' },
-    { label: '終了', click: () => app.quit() },
-  ]);
+  const buildMenu = () => {
+    const items = [
+      { label: obsConnected ? '● 動作中' : '○ 未接続', enabled: false },
+      { type: 'separator' },
+      { label: testMode ? '■ テスト停止' : '▶ テスト動画で検証', click: () => testMode ? stopTestMode() : startTestMode() },
+    ];
+    if (testMode) {
+      items.push({ label: '↺ テスト動画を切り替え', click: switchTestVideo });
+    }
+    items.push(
+      { label: '設定', click: openSettings },
+      { label: 'OBSに再接続', click: () => { obs.disconnect(); connectOBS(); } },
+      { type: 'separator' },
+      { label: '終了', click: () => app.quit() }
+    );
+    return Menu.buildFromTemplate(items);
+  };
   tray.setContextMenu(buildMenu());
   tray.on('click', () => tray.setContextMenu(buildMenu()));
   connectOBS();
