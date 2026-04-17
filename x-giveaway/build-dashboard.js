@@ -134,6 +134,10 @@ const historyEntries = history.map(h => {
 // Applied tweet URLs from history
 const appliedUrls = history.map(h => `"${esc(h.tweetUrl)}"`).join(',\n  ');
 
+// Applied account names from history (for account-based matching)
+const appliedAccounts = [...new Set(history.map(h => h.account.replace('@', '').toLowerCase()))];
+const appliedAccountsJs = appliedAccounts.map(a => `"${a}"`).join(',\n  ');
+
 // ---- Build HTML ----
 const html = `<!DOCTYPE html>
 <html lang="ja">
@@ -429,6 +433,10 @@ const APPLIED_URLS = [
   ${appliedUrls}
 ];
 
+const APPLIED_ACCOUNTS = [
+  ${appliedAccountsJs}
+];
+
 const GIVEAWAYS = [
 ${jsEntries}
 ];
@@ -538,7 +546,9 @@ function methodBadges(m) {
 }
 
 function isApplied(url) {
-  return APPLIED_URLS.some(u => url.includes(u) || u.includes(url));
+  const u = url.toLowerCase();
+  if (APPLIED_URLS.some(au => u === au.toLowerCase())) return true;
+  return APPLIED_ACCOUNTS.some(a => u.includes('x.com/' + a + '/') || u.includes('x.com/' + a));
 }
 
 function renderStats() {
