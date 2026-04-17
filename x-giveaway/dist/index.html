@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X懸賞ダッシュボード</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', sans-serif;
+    background: #0f1419;
+    color: #e7e9ea;
+    padding: 16px;
+    line-height: 1.5;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 8px;
+    font-size: 1.5rem;
+    color: #1d9bf0;
+  }
+  .meta {
+    text-align: center;
+    color: #71767b;
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+  }
+  .stats {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: #16202a;
+    border: 1px solid #2f3336;
+    border-radius: 12px;
+    padding: 12px 20px;
+    text-align: center;
+    min-width: 120px;
+  }
+  .stat-card .num {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #1d9bf0;
+  }
+  .stat-card .label {
+    font-size: 0.75rem;
+    color: #71767b;
+  }
+  .filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filters input, .filters select {
+    background: #16202a;
+    border: 1px solid #2f3336;
+    color: #e7e9ea;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+  }
+  .filters input { flex: 1; min-width: 200px; }
+  .filters select { min-width: 140px; }
+  .filters button {
+    background: #1d9bf0;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .filters button:hover { background: #1a8cd8; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  thead th {
+    background: #16202a;
+    color: #71767b;
+    padding: 10px 8px;
+    text-align: left;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 2px solid #2f3336;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  thead th:hover { color: #1d9bf0; }
+  tbody tr {
+    border-bottom: 1px solid #2f3336;
+    transition: background 0.15s;
+  }
+  tbody tr:hover { background: #1c2732; }
+  tbody td {
+    padding: 10px 8px;
+    vertical-align: top;
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-rt { background: #1d3a2e; color: #00ba7c; }
+  .badge-reply { background: #2a1f3a; color: #a78bfa; }
+  .badge-quote { background: #3a2a1f; color: #f59e0b; }
+  .badge-like { background: #3a1f2a; color: #f91880; }
+  .badge-daily { background: #1f2a3a; color: #60a5fa; }
+  .badge-won { background: #1a3a1f; color: #22c55e; }
+  .badge-lost { background: #2f3336; color: #71767b; }
+  .badge-instant { background: #2a1f10; color: #f59e0b; }
+  .tab-bar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    border-bottom: 2px solid #2f3336;
+  }
+  .tab-btn {
+    background: none;
+    border: none;
+    color: #71767b;
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: color 0.15s;
+  }
+  .tab-btn.active { color: #1d9bf0; border-bottom-color: #1d9bf0; font-weight: 700; }
+  .tab-btn:hover { color: #e7e9ea; }
+  .tab-section { display: none; }
+  .tab-section.active { display: block; }
+  .history-table .won-row td { color: #22c55e; }
+  .history-table .lost-row td { color: #71767b; }
+  .history-table .instant-row td { color: #f59e0b; }
+  .deadline-urgent { color: #f4212e; font-weight: 700; }
+  .deadline-soon { color: #ffd400; font-weight: 600; }
+  .deadline-ok { color: #00ba7c; }
+  .deadline-expired { color: #71767b; text-decoration: line-through; }
+  .btn {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 16px;
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-weight: 600;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn-apply {
+    background: #1d9bf0;
+    color: #fff;
+  }
+  .btn-done {
+    background: #2f3336;
+    color: #71767b;
+    pointer-events: none;
+  }
+  .btn-detail {
+    background: transparent;
+    border: 1px solid #2f3336;
+    color: #71767b;
+    margin-left: 4px;
+  }
+  tr.applied {
+    opacity: 0.45;
+  }
+  tr.applied td { color: #71767b; }
+  .winners { color: #ffd400; font-weight: 600; }
+  .source-tag {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    background: #2f3336;
+    color: #71767b;
+  }
+  .prize-name {
+    font-weight: 600;
+    color: #e7e9ea;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .provider {
+    color: #71767b;
+    font-size: 0.8rem;
+  }
+  @media (max-width: 768px) {
+    table { font-size: 0.78rem; }
+    .hide-mobile { display: none; }
+    .filters { flex-direction: column; }
+    .filters input, .filters select { min-width: 100%; }
+    .stat-card { min-width: 80px; padding: 8px 12px; }
+    .stat-card .num { font-size: 1.2rem; }
+  }
+  .no-results {
+    text-align: center;
+    padding: 40px;
+    color: #71767b;
+  }
+</style>
+</head>
+<body>
+
+<h1>X懸賞ダッシュボード</h1>
+<p class="meta">Generated: 2026/4/17 | Sources: chanceit, ke-ma, ken-kaku, knshow, kojinabi, x-search | Account: @kabochapiza</p>
+
+<div class="stats" id="stats"></div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('giveaway')">懸賞一覧</button>
+  <button class="tab-btn" onclick="switchTab('history')">応募履歴 (145件)</button>
+</div>
+
+<div id="tab-giveaway" class="tab-section active">
+<div class="filters">
+  <input type="text" id="searchInput" placeholder="検索..." oninput="filterTable()">
+  <select id="statusFilter" onchange="filterTable()">
+    <option value="all">すべて</option>
+    <option value="open">未応募</option>
+    <option value="applied">応募済</option>
+    <option value="expired">期限切れ</option>
+  </select>
+  <select id="methodFilter" onchange="filterTable()">
+    <option value="all">すべての応募方法</option>
+    <option value="rt">フォロー&RT</option>
+    <option value="reply">リプライ</option>
+    <option value="quote">引用</option>
+  </select>
+  <select id="sourceFilter" onchange="filterTable()">
+    <option value="all">すべてのソース</option>
+    <option value="chanceit">chanceit</option>
+    <option value="ke-ma">ke-ma</option>
+    <option value="ken-kaku">ken-kaku</option>
+    <option value="knshow">knshow</option>
+    <option value="kojinabi">kojinabi</option>
+    <option value="x-search">x-search</option>
+  </select>
+  <button onclick="resetFilters()">リセット</button>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th onclick="sortTable(0)">#</th>
+      <th onclick="sortTable(1)">賞品 / 提供元</th>
+      <th onclick="sortTable(2)">当選数</th>
+      <th onclick="sortTable(3)">締切</th>
+      <th onclick="sortTable(4)" class="hide-mobile">応募方法</th>
+      <th class="hide-mobile">ソース</th>
+      <th>状態</th>
+      <th>アクション</th>
+    </tr>
+  </thead>
+  <tbody id="tableBody"></tbody>
+</table>
+<div class="no-results" id="noResults" style="display:none;">該当する懸賞が見つかりません。</div>
+</div><!-- /tab-giveaway -->
+
+<div id="tab-history" class="tab-section">
+<table class="history-table">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>日付</th>
+      <th>アカウント / 内容</th>
+      <th>締切</th>
+      <th>結果</th>
+      <th>アクション</th>
+    </tr>
+  </thead>
+  <tbody id="historyBody"></tbody>
+</table>
+</div><!-- /tab-history -->
+
+<script>
+const APPLIED_URLS = [
+  "https://x.com/chanceitpresent/status/2042392119940194405",
+  "https://x.com/famima_now/status/2042377013395091736",
+  "https://x.com/DaiblosCore_JP/status/2042346820928749817",
+  "https://x.com/okaimono_ONE/status/2042407220319830378",
+  "https://x.com/Loctite_Japan/status/2042407333519900994",
+  "https://x.com/kyoto_nishiri/status/2039176058013143092",
+  "https://x.com/PremiumMalts_jp/status/2042150529078567359",
+  "https://x.com/sapporo1ban_jp/status/2042438670775722213",
+  "https://x.com/nichirei_foods/status/2042407222395678910",
+  "https://x.com/transino_jp/status/2039870498465784203",
+  "https://x.com/CokeON/status/2041652240138826018",
+  "https://x.com/BountyhuntersJP/status/2041108659007345104",
+  "https://x.com/raburaku_ko/status/2041709298422837700",
+  "https://x.com/foodwastesos/status/2042088025790808248",
+  "https://x.com/McDonaldsJapan/status/2042429863655522514",
+  "https://x.com/amayakashi_312/status/2031928173663863278",
+  "https://x.com/mushokutensei_C/status/2040626616582480227",
+  "https://x.com/mantle_talkntv/status/2040989710596948155",
+  "https://x.com/peer_conne/status/2038541752341320162",
+  "https://x.com/narisen_katobu/status/2038994751341604881",
+  "https://x.com/beppukeirin/status/2042377015173480612",
+  "https://x.com/kincho_pr/status/2041682441744589272",
+  "https://x.com/QUOcardPay/status/2041795684446175245",
+  "https://x.com/game_watch/status/2041712642163933633",
+  "https://x.com/pigg_u_staff/status/2041843033994395650",
+  "https://x.com/daiseijo_anime/status/2042528089041965399",
+  "https://x.com/edion_PR/status/2012540492932882492",
+  "https://x.com/mufgcr_official/status/2025390084800061581",
+  "https://x.com/Sky_career_/status/2033408140495216718",
+  "https://x.com/Sky_recruiting/status/2023246092079628619",
+  "https://x.com/snoopy_drops/status/2039976200165294190",
+  "https://x.com/yamazakipan_cp/status/2041682441530962081",
+  "https://x.com/Fri_mystery_ntv/status/2042739410274521401",
+  "https://x.com/meijiyasuda_pr/status/2042799809833189400",
+  "https://x.com/unifi_x_jp/status/1973305173272567915",
+  "https://x.com/dot_abyss_pr/status/2043237689827242051",
+  "https://x.com/ToeiVideo/status/2039550431874199761",
+  "https://x.com/girlscreationPR/status/2042800922557120841",
+  "https://x.com/AUTOBACS_COM/status/2040964383367733464",
+  "https://x.com/youmetown_/status/2042413034631774502",
+  "https://x.com/ohayoukai_jp/status/2040263092165095439",
+  "https://x.com/ohayoukai_jp/status/2040987862636933339",
+  "https://x.com/iwatobinekoFTB/status/2042073771541168278",
+  "https://x.com/donki_donki/status/2043343460242268524",
+  "https://x.com/Mofuhamu_7/status/2043343381338984792",
+  "https://x.com/cocomuu_atelier/status/2043343472657314050",
+  "https://x.com/joshin_info/status/2039161047895126301",
+  "https://x.com/nigirichojiro/status/2041305050048516150",
+  "https://x.com/GBO_f_hgsn/status/2039161068849873196",
+  "https://x.com/tamago_himawari/status/2042413606701326508",
+  "https://x.com/akiko_lawson/status/2043101792800580092",
+  "https://x.com/KFC_jp/status/2042981003959111988",
+  "https://x.com/famima_now/status/2043101792624406826",
+  "https://x.com/suntory/status/2043131990061228335",
+  "https://x.com/suntory/status/2043101789226996051",
+  "https://x.com/seims_official/status/2043086845903536386",
+  "https://x.com/koraakakara/status/2043102083046662559",
+  "https://x.com/joshin_info/status/2042558304648597961",
+  "https://x.com/GBO_shinsaiP/status/2039161092996563033",
+  "https://x.com/gasha_llpebina/status/2039161078861730014",
+  "https://x.com/Stardive_JP/status/2043267885074645286",
+  "https://x.com/ayarabu_info/status/2043252790693109864",
+  "https://x.com/ORICOdeNORU/status/2043162594043945175",
+  "https://x.com/donki_donki/status/2043343460242268524",
+  "https://x.com/wedding_ainaka/status/2043313685851263037",
+  "https://x.com/amy_cosmetics/status/2043282983436898786",
+  "https://x.com/akkkkiy/status/2043273985417433446",
+  "https://x.com/MiniTool_Japan/status/2042905496940597412",
+  "https://x.com/RiichiCity_JP/status/2042875300472852494",
+  "https://x.com/RiichiCity_JP/status/2042807350210240522",
+  "https://x.com/PokerFate_JP/status/2042799799456665937",
+  "https://x.com/Kanpy_official/status/2041712648371196002",
+  "https://x.com/game_watch/status/2041350250842173713",
+  "https://x.com/famima_now/status/2043464180083122518",
+  "https://x.com/KFC_jp/status/2043343381456146911",
+  "https://x.com/bikkuri__donkey/status/2043464179567444257",
+  "https://x.com/cocomuu_atelier/status/2043705824141541394",
+  "https://x.com/graniph_updates/status/2043616253651431629",
+  "https://x.com/mapple_editor/status/2043527005195616451",
+  "https://x.com/koraakakara/status/2043464456769069563",
+  "https://x.com/GBO_tachikawaT/status/2039161093378187271",
+  "https://x.com/GBO_f_hgsn/status/2039161068849873196",
+  "https://x.com/gasha_llpebina/status/2039161078861730014",
+  "https://x.com/GBO_shinsaiP/status/2039161092996563033",
+  "https://x.com/eaidem_tw/status/2042438402252112183",
+  "https://x.com/tokutoku_oic/status/2039659350739009740",
+  "https://x.com/kazokutei_oic/status/2039659352421003559",
+  "https://x.com/i8791/status/2043645378441163216",
+  "https://x.com/Ponta_Oversea/status/2043524597103141244",
+  "https://x.com/prune_fan/status/2043569875994698046",
+  "https://x.com/MiniTool_Japan/status/2043630273196139006",
+  "https://x.com/sealine_jp/status/2043856694913204554",
+  "https://x.com/YBC_jp/status/2043856844205216242",
+  "https://x.com/wsrtcg/status/2043871863688904977",
+  "https://x.com/KarcherJapan/status/2043876937861575100",
+  "https://x.com/joseiseven/status/2043875044041077032",
+  "https://x.com/tospo_boatrace/status/2043872618877800906",
+  "https://x.com/GEO_official/status/2043858096234348952",
+  "https://x.com/mizkan_official/status/2043856769777062268",
+  "https://x.com/sofy_jp/status/2043871864863240554",
+  "https://x.com/cs_yukarigaoka/status/2043856768820814278",
+  "https://x.com/cs_lalaponumazu/status/2043856765981470814",
+  "https://x.com/cs_kitajima/status/2043841669989032105",
+  "https://x.com/aira_cs/status/2043841666495459538",
+  "https://x.com/sunshine_imax/status/2043841665555636577",
+  "https://x.com/UA_glr_fan/status/2043855020026958022",
+  "https://x.com/iwatsu01print/status/2043856767054971218",
+  "https://x.com/tamago_himawari/status/2042413606701326508",
+  "https://x.com/cs_iizuka/status/2043871865173598710",
+  "https://x.com/TBSR_PR/status/2043856766908195192",
+  "https://x.com/ajipon_mizkan/status/2043486826581930240",
+  "https://x.com/seims_official/status/2042875633265709310",
+  "https://x.com/nipponluna/status/2043509480575680931",
+  "https://x.com/Ume_bsfuji/status/2043826569932878074",
+  "https://x.com/Timee_official/status/2043555088481087998",
+  "https://x.com/foodtown_JP/status/2043661673576493097",
+  "https://x.com/glico_cafeore/status/2043811473429016895",
+  "https://x.com/CARNEXT_JP/status/2043811468043493821",
+  "https://x.com/yuzuan_official/status/2043811634393821456",
+  "https://x.com/sega_girls/status/2043887042095128949",
+  "https://x.com/rakutentv_japan/status/2043887019445891346",
+  "https://x.com/SD_oripa/status/2043886974948520147",
+  "https://x.com/agdeo24/status/2043886967151309036",
+  "https://x.com/BAOBAO_JP/status/2043886964353708171",
+  "https://x.com/anipoke_PR/status/2043886963737145689",
+  "https://x.com/dospara_web/status/2043887597144223987",
+  "https://x.com/savondusavota/status/2043886975242121496",
+  "https://x.com/calbee_PR/status/2043887024684577023",
+  "https://x.com/sports_bstbs/status/2043887776421318871",
+  "https://x.com/gottsuprice/status/2043887553229795587",
+  "https://x.com/rapidmachi/status/2043886964806476244",
+  "https://x.com/MAGCOMI_/status/2043886978933109119",
+  "https://x.com/realsound_tech/status/2043886966819758276",
+  "https://x.com/DAITOGIKEN_JP/status/2043886967704957169",
+  "https://x.com/ZOTAC_JAPAN/status/2043889535864709324",
+  "https://x.com/YBC_jp/status/2044219227180282293",
+  "https://x.com/munashi2022/status/2044234449932734789",
+  "https://x.com/calbee_PR/status/2044219224340738242",
+  "https://x.com/yamazakipan_cp/status/2044219153523834969",
+  "https://x.com/REBHPortal/status/2044249354236567791",
+  "https://x.com/CaramelCorn1971/status/2044249655085805938",
+  "https://x.com/tamago_himawari/status/2044189350934778237",
+  "https://x.com/cocomuu_atelier/status/2044068229338063269",
+  "https://x.com/nigirichojiro/status/2041305050048516150",
+  "https://x.com/mapple_editor/status/2043527005195616451"
+];
+
+const GIVEAWAYS = [
+  {name:"伊右衛門 THE HIRAMATSU 京都 宿泊券(ペア)",provider:"伊右衛門",winners:"1組2名",deadline:"2026-04-07",method:"rt",applyUrl:"https://x.com/iyemon_cp",detailUrl:"https://x.com/iyemon_cp",source:"x-search"},
+  {name:"牛乳でつくるココア 2個",provider:"meito",winners:"25名",deadline:"2026-04-10",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707583",detailUrl:"https://www.chance.com/present/detail/707583/",source:"chanceit"},
+  {name:"Amazonギフト券3,000円分",provider:"あしふみ健幸ライフ",winners:"3名",deadline:"2026-04-10",method:"rt+reply",applyUrl:"https://www.chance.com/jump.srv?id=707587",detailUrl:"https://www.chance.com/present/detail/707587/",source:"chanceit"},
+  {name:"ゴンチャクーポン",provider:"Gong cha",winners:"毎日100名",deadline:"2026-04-10",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707591",detailUrl:"https://www.chance.com/present/detail/707591/",source:"chanceit"},
+  {name:"Amazonギフトカード1,000円分",provider:"ライジングフード",winners:"5名",deadline:"2026-04-10",method:"rt+reply",applyUrl:"https://www.chance.com/jump.srv?id=707590",detailUrl:"https://www.chance.com/present/detail/707590/",source:"chanceit"},
+  {name:"ALLIE×ちいかわコラボUVクリーム",provider:"ALLIE official",winners:"150名",deadline:"2026-04-10",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707569",detailUrl:"https://www.chance.com/present/detail/707569/",source:"chanceit"},
+  {name:"ジェットストリーム+うまい棒",provider:"やおきん",winners:"10名",deadline:"2026-04-10",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707568",detailUrl:"https://www.chance.com/present/detail/707568/",source:"chanceit"},
+  {name:"角型着脱鍋18cm 4点セット",provider:"和平フレイズ",winners:"5名",deadline:"2026-04-10",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707575",detailUrl:"https://www.chance.com/present/detail/707575/",source:"chanceit"},
+  {name:"Amazonギフト券10,000円分",provider:"ラングリッサーモバイル",winners:"7名",deadline:"2026-04-10",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707576",detailUrl:"https://www.chance.com/present/detail/707576/",source:"chanceit"},
+  {name:"のんある酒場「梅酒ソーダ」",provider:"TBSラジオ",winners:"5名",deadline:"2026-04-11",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707602",detailUrl:"https://www.chance.com/present/detail/707602/",source:"chanceit"},
+  {name:"Galaxy S26 Ultra + Galaxy Buds4 Pro",provider:"Samsung Japan",winners:"不明(毎日抽選)",deadline:"2026-04-11",method:"rt",applyUrl:"https://x.com/SamsungJPN/status/2040232928911970717",detailUrl:"https://x.com/SamsungJPN/status/2040232928911970717",source:"x-search"},
+  {name:"おしりたんてい オリジナルステッカー2種1セット",provider:"おしりたんてい",winners:"20名",deadline:"2026-04-11",method:"rt",applyUrl:"https://x.com/o_tantei",detailUrl:"https://x.com/o_tantei",source:"x-search"},
+  {name:"えらべるPay 最大30,000円分",provider:"ダイブロスコア",winners:"3,000名",deadline:"2026-04-11",method:"rt",applyUrl:"https://x.com/DaiblosCore_JP/status/2042346820928749817",detailUrl:"https://x.com/DaiblosCore_JP/status/2042346820928749817",source:"x-search"},
+  {name:"ケンミン焼ビーフン&春にんじん",provider:"ケンミン食品",winners:"30名",deadline:"2026-04-12",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707612",detailUrl:"https://www.chance.com/present/detail/707612/",source:"chanceit"},
+  {name:"富士急ハイランド ワンデイパスペア 他",provider:"農心ジャパン",winners:"15名",deadline:"2026-04-12",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707614",detailUrl:"https://www.chance.com/present/detail/707614/",source:"chanceit"},
+  {name:"ロッテ「アジアに恋して」4品詰合せ",provider:"エバグリーン廣甚",winners:"12名",deadline:"2026-04-12",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707616",detailUrl:"https://www.chance.com/present/detail/707616/",source:"chanceit"},
+  {name:"マグネットヘアプロ ドライヤーゼロ",provider:"エディオン豊田本店",winners:"1名",deadline:"2026-04-12",method:"rt+reply",applyUrl:"https://www.chance.com/jump.srv?id=707627",detailUrl:"https://www.chance.com/present/detail/707627/",source:"chanceit"},
+  {name:"QUOカードPay 3,000円分",provider:"サンセイR&D",winners:"80名",deadline:"2026-04-12",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707628",detailUrl:"https://www.chance.com/present/detail/707628/",source:"chanceit"},
+  {name:"MOA自然農法 甘夏",provider:"東京療院",winners:"2名",deadline:"2026-04-12",method:"rt+like",applyUrl:"https://www.chance.com/jump.srv?id=707631",detailUrl:"https://www.chance.com/present/detail/707631/",source:"chanceit"},
+  {name:"ノラネコぐんだんコインケース",provider:"ノラネコぐんだん",winners:"3名",deadline:"2026-04-12",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707632",detailUrl:"https://www.chance.com/present/detail/707632/",source:"chanceit"},
+  {name:"DECOREふわんとろんフルーツミルク",provider:"ふわんとろん",winners:"5名",deadline:"2026-04-12",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707633",detailUrl:"https://www.chance.com/present/detail/707633/",source:"chanceit"},
+  {name:"スプラウト野菜詰め合わせ",provider:"セイル・オン農園",winners:"5名",deadline:"2026-04-12",method:"rt+reply",applyUrl:"https://www.chance.com/jump.srv?id=707634",detailUrl:"https://www.chance.com/present/detail/707634/",source:"chanceit"},
+  {name:"楽天ポイント10,000円相当",provider:"RakutenTV",winners:"1名",deadline:"2026-04-12",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707636",detailUrl:"https://www.chance.com/present/detail/707636/",source:"chanceit"},
+  {name:"CJ商品詰合せセット",provider:"CJ JAPAN",winners:"10名",deadline:"2026-04-12",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707652",detailUrl:"https://www.chance.com/present/detail/707652/",source:"chanceit"},
+  {name:"QUOカード2,000円分",provider:"ピザハット",winners:"5名",deadline:"2026-04-12",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707653",detailUrl:"https://www.chance.com/present/detail/707653/",source:"chanceit"},
+  {name:"つけ旨オイル2点セット",provider:"ダイショー",winners:"10名",deadline:"2026-04-12",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707654",detailUrl:"https://www.chance.com/present/detail/707654/",source:"chanceit"},
+  {name:"お菓子6品詰合せ",provider:"お菓子と、わたし",winners:"10名",deadline:"2026-04-12",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707556",detailUrl:"https://www.chance.com/present/detail/707556/",source:"chanceit"},
+  {name:"ローソン カフェラテ 無料クーポン",provider:"ローソン",winners:"50,000名",deadline:"2026-04-12",method:"rt",applyUrl:"https://x.com/akiko_lawson",detailUrl:"https://x.com/akiko_lawson",source:"ke-ma"},
+  {name:"Google Pixel 10a 128GB (UQ)",provider:"UQ",winners:"1名",deadline:"2026-04-13",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707800",detailUrl:"https://www.chance.com/present/detail/707800/",source:"chanceit"},
+  {name:"Google Pixel 10a 128GB (au)",provider:"au",winners:"1名",deadline:"2026-04-13",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707801",detailUrl:"https://www.chance.com/present/detail/707801/",source:"chanceit"},
+  {name:"Google Pixel 10a (SoftBank)",provider:"SoftBank",winners:"1名",deadline:"2026-04-13",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707799",detailUrl:"https://www.chance.com/present/detail/707799/",source:"chanceit"},
+  {name:"カネテツ商品セット",provider:"カネテツ",winners:"3名",deadline:"2026-04-13",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707798",detailUrl:"https://www.chance.com/present/detail/707798/",source:"chanceit"},
+  {name:"神州一味噌 詰め合わせセット",provider:"神州一味噌",winners:"10名",deadline:"2026-04-13",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707797",detailUrl:"https://www.chance.com/present/detail/707797/",source:"chanceit"},
+  {name:"おいしい水 レモン水 無糖 1ケース",provider:"アサヒ飲料",winners:"100名",deadline:"2026-04-13",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707751",detailUrl:"https://www.chance.com/present/detail/707751/",source:"chanceit"},
+  {name:"オリジナルバスタオル",provider:"セブン-イレブン",winners:"100名",deadline:"2026-04-13",method:"reply",applyUrl:"https://www.chance.com/jump.srv?id=707753",detailUrl:"https://www.chance.com/present/detail/707753/",source:"chanceit"},
+  {name:"Tシャツ&モンスターエナジー新フレーバー",provider:"Monster Energy",winners:"50名",deadline:"2026-04-13",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707754",detailUrl:"https://www.chance.com/present/detail/707754/",source:"chanceit"},
+  {name:"MEMEME スムースセット",provider:"サンドラッグ",winners:"10名",deadline:"2026-04-13",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707755",detailUrl:"https://www.chance.com/present/detail/707755/",source:"chanceit"},
+  {name:"ガチャピン・ムック グッズ",provider:"めざましテレビ",winners:"5名",deadline:"2026-04-13",method:"quote",applyUrl:"https://www.chance.com/jump.srv?id=707735",detailUrl:"https://www.chance.com/present/detail/707735/",source:"chanceit"},
+  {name:"特選のり食べくらべセット",provider:"のり推進協",winners:"8名",deadline:"2026-04-13",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707742",detailUrl:"https://www.chance.com/present/detail/707742/",source:"chanceit"},
+  {name:"いかの姿あげ骨付き肉風味&わたあめ風味",provider:"合食",winners:"5名",deadline:"2026-04-13",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707743",detailUrl:"https://www.chance.com/present/detail/707743/",source:"chanceit"},
+  {name:"パリパリ焙煎いりこ",provider:"大阪スケジュール",winners:"5名",deadline:"2026-04-13",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707744",detailUrl:"https://www.chance.com/present/detail/707744/",source:"chanceit"},
+  {name:"HN高校生イラストQUOカード500円分",provider:"ハンドレッドノート",winners:"3名",deadline:"2026-04-13",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707745",detailUrl:"https://www.chance.com/present/detail/707745/",source:"chanceit"},
+  {name:"recolte自動調理ポットラージ",provider:"エディオン広島本店",winners:"2名",deadline:"2026-04-13",method:"rt+reply",applyUrl:"https://www.chance.com/jump.srv?id=707746",detailUrl:"https://www.chance.com/present/detail/707746/",source:"chanceit"},
+  {name:"Leinaサイン付きB2ポスター",provider:"日本三國",winners:"2名",deadline:"2026-04-13",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707747",detailUrl:"https://www.chance.com/present/detail/707747/",source:"chanceit"},
+  {name:"音カルタ(毎日応募可)",provider:"銀鳥産業",winners:"5名",deadline:"2026-04-13",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707748",detailUrl:"https://www.chance.com/present/detail/707748/",source:"chanceit"},
+  {name:"丸亀製麺 500円引きクーポン",provider:"丸亀製麺",winners:"500名",deadline:"2026-04-13",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707588",detailUrl:"https://www.chance.com/present/detail/707588/",source:"chanceit"},
+  {name:"コナン×ベビースターラーメン",provider:"小学館集英社プロダクション",winners:"15名",deadline:"2026-04-13",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707727",detailUrl:"https://www.chance.com/present/detail/707727/",source:"chanceit"},
+  {name:"日東紅茶 春夏新商品6点セット",provider:"三井農林",winners:"10名",deadline:"2026-04-13",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707728",detailUrl:"https://www.chance.com/present/detail/707728/",source:"chanceit"},
+  {name:"QUOカード10,000円分",provider:"ローソン",winners:"1名",deadline:"2026-04-13",method:"quote",applyUrl:"https://www.chance.com/jump.srv?id=707729",detailUrl:"https://www.chance.com/present/detail/707729/",source:"chanceit"},
+  {name:"オリジナルQUOカード500円分",provider:"サミー",winners:"50名",deadline:"2026-04-13",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707730",detailUrl:"https://www.chance.com/present/detail/707730/",source:"chanceit"},
+  {name:"giftee Box Select 1,000円分",provider:"楽天証券",winners:"44名",deadline:"2026-04-13",method:"quote",applyUrl:"https://www.chance.com/jump.srv?id=707731",detailUrl:"https://www.chance.com/present/detail/707731/",source:"chanceit"},
+  {name:"LIAR GAMEサイン入りアフレコ台本 他",provider:"集英社",winners:"103名",deadline:"2026-04-13",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707734",detailUrl:"https://www.chance.com/present/detail/707734/",source:"chanceit"},
+  {name:"ファミマ もーっちりキャラメルドーナツ 無料クーポン",provider:"ファミリーマート",winners:"10,000名",deadline:"2026-04-13",method:"rt",applyUrl:"https://x.com/famima_now/status/2036246625132142693",detailUrl:"https://x.com/famima_now/status/2036246625132142693",source:"ke-ma"},
+  {name:"キリン スプリングバレーブルワリー コンビニ無料引換クーポン",provider:"キリンビール",winners:"130,000名",deadline:"2026-04-13",method:"rt",applyUrl:"https://x.com/Kirin_Brewery",detailUrl:"https://x.com/Kirin_Brewery",source:"x-search"},
+  {name:"赤玉パンチ QUOカードPay1,000円分",provider:"サントリー",winners:"500名",deadline:"2026-04-14",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707733",detailUrl:"https://www.chance.com/present/detail/707733/",source:"chanceit"},
+  {name:"QUOカードPay 10,000円分 + 金の蚊取り容器",provider:"KINCHO",winners:"1,010名",deadline:"2026-04-14",method:"rt",applyUrl:"https://x.com/kincho_pr/status/2041682441744589272",detailUrl:"https://x.com/kincho_pr/status/2041682441744589272",source:"ke-ma"},
+  {name:"KFC レモンチキン 無料クーポン",provider:"KFC Japan",winners:"10,000名",deadline:"2026-04-14",method:"rt",applyUrl:"https://x.com/KFC_jp",detailUrl:"https://x.com/KFC_jp",source:"ke-ma"},
+  {name:"fino ヘアマスクセット",provider:"資生堂 fino",winners:"30名",deadline:"2026-04-14",method:"rt+reply",applyUrl:"https://x.com/fino_jp",detailUrl:"https://x.com/fino_jp",source:"ke-ma"},
+  {name:"カンピー 70周年記念賞品2種",provider:"カンピー",winners:"7名",deadline:"2026-04-14",method:"rt",applyUrl:"https://x.com/Kanpy_official/status/2041712648371196002",detailUrl:"https://x.com/Kanpy_official/status/2041712648371196002",source:"ken-kaku"},
+  {name:"びっくりドンキー 10,000円分お食事券",provider:"びっくりドンキー",winners:"20名",deadline:"2026-04-14",method:"rt",applyUrl:"https://www.bikkuri-donkey.com/campaign/2026_welovecheese/",detailUrl:"https://www.bikkuri-donkey.com/campaign/2026_welovecheese/",source:"ken-kaku"},
+  {name:"PS5 ディスクドライブ+ゲームバンドル",provider:"GAME Watch",winners:"1名",deadline:"2026-04-14",method:"rt",applyUrl:"https://x.com/game_watch/status/2041350250842173713",detailUrl:"https://game.watch.impress.co.jp/docs/common/2099695.html",source:"ken-kaku"},
+  {name:"sleep hug ボディソープスクラブ",provider:"フレーバーライフ社",winners:"500名",deadline:"2026-04-15",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707821",detailUrl:"https://www.chance.com/present/detail/707821/",source:"chanceit"},
+  {name:"オリジナルミトン",provider:"雪印メグミルク",winners:"25名",deadline:"2026-04-15",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707822",detailUrl:"https://www.chance.com/present/detail/707822/",source:"chanceit"},
+  {name:"なでしこジャパン戦チケット",provider:"クレディセゾン",winners:"6組",deadline:"2026-04-15",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707819",detailUrl:"https://www.chance.com/present/detail/707819/",source:"chanceit"},
+  {name:"Amazonギフト券2万円分 他",provider:"聖闘士星矢 Galaxy Soldiers",winners:"21名",deadline:"2026-04-15",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707824",detailUrl:"https://www.chance.com/present/detail/707824/",source:"chanceit"},
+  {name:"LION ハブラシ ヘアブラシ 1年分",provider:"LION",winners:"50名",deadline:"2026-04-15",method:"rt",applyUrl:"https://x.com/lion_haburashi/status/2042059925686513841",detailUrl:"https://x.com/lion_haburashi/status/2042059925686513841",source:"ken-kaku"},
+  {name:"Amazonギフトカード 10,000円分",provider:"GAME Watch",winners:"2名",deadline:"2026-04-15",method:"rt",applyUrl:"https://x.com/game_watch",detailUrl:"https://game.watch.impress.co.jp/docs/common/2099695.html",source:"ken-kaku"},
+  {name:"アサヒ スタイルフリー トリプルゼロ コンビニ無料引換クーポン",provider:"アサヒビール",winners:"300,000名",deadline:"2026-04-15",method:"rt",applyUrl:"https://x.com/asahibeer_jp",detailUrl:"https://x.com/asahibeer_jp",source:"x-search"},
+  {name:"楽天ポイント 10,000円相当",provider:"楽天スーパーポイントスクリーン",winners:"1,111名",deadline:"2026-04-15",method:"rt",applyUrl:"https://x.com/raboratory1111",detailUrl:"https://x.com/raboratory1111",source:"x-search"},
+  {name:"キャラメルコーン 2箱セット",provider:"森永 キャラメルコーン",winners:"15名",deadline:"2026-04-20",method:"rt",applyUrl:"https://x.com/CaramelCorn1971",detailUrl:"https://x.com/CaramelCorn1971",source:"ken-kaku"},
+  {name:"ミニストップ ブラックニッカクリアハイボール缶350ml",provider:"ミニストップ",winners:"10,000名",deadline:"2026-04-20",method:"rt",applyUrl:"https://x.com/ministopfan/status/2041425745977942214",detailUrl:"https://x.com/ministopfan/status/2041425745977942214",source:"kojinabi"},
+  {name:"JTBトラベルギフト 5万円分",provider:"NHK出版",winners:"3名",deadline:"2026-04-21",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707551",detailUrl:"https://www.chance.com/present/detail/707551/",source:"chanceit"},
+  {name:"天乃屋 おかき詰め合わせ",provider:"天乃屋",winners:"10名",deadline:"2026-04-21",method:"rt",applyUrl:"https://www.e-amanoya.co.jp/campaign2_2026/",detailUrl:"https://www.e-amanoya.co.jp/campaign2_2026/",source:"ken-kaku"},
+  {name:"東京ディズニーリゾート パークチケット(ペア)+グルメチケットセット",provider:"山崎製パン",winners:"20組40名",deadline:"2026-04-28",method:"rt",applyUrl:"https://x.com/yamazakipan_cp",detailUrl:"https://www.yamazakipan.co.jp/feature/tdr_xcp/",source:"ke-ma"},
+  {name:"アサヒビール プレミアム飲料 350ml×6本",provider:"アサヒパーク",winners:"100名",deadline:"2026-04-28",method:"rt",applyUrl:"https://www.asahibeer.co.jp/web-service/asahibeer/park/cp/260407-260428/form.wsp.html",detailUrl:"https://www.asahibeer.co.jp/web-service/asahibeer/park/cp/260407-260428/form.wsp.html",source:"ken-kaku"},
+  {name:"山崎製パン 春のパンまつり えらべるPay 500円分",provider:"山崎製パン",winners:"各回100名(全4回/計400名)",deadline:"2026-04-28",method:"rt",applyUrl:"https://x.com/yamazakipan_cp",detailUrl:"https://www.yamazakipan.co.jp/campaign/spring/snscp.html",source:"x-search"},
+  {name:"Coke ONポイント 10万円相当+スタンプ",provider:"Coke ON",winners:"100,000名",deadline:"2026-04-30",method:"rt",applyUrl:"https://x.com/CokeON",detailUrl:"https://x.com/CokeON",source:"ke-ma"},
+  {name:"Amazonギフトカード 500円分",provider:"Sky株式会社",winners:"500名",deadline:"2026-04-30",method:"rt",applyUrl:"https://x.com/Sky_career_",detailUrl:"https://x.com/Sky_career_",source:"ke-ma"},
+  {name:"Amazonギフト券 100,000円分",provider:"内定AI",winners:"1名",deadline:"2026-04-30",method:"rt",applyUrl:"https://x.com/naitei__ai",detailUrl:"https://www.naitei-ai.com/campaign/release-20260407",source:"x-search"},
+  {name:"ディズニーリゾート ガイドブック記念 パークチケット(ペア)+25周年グッズ",provider:"講談社エンターテインメント",winners:"不明",deadline:"2026-04-30",method:"rt",applyUrl:"https://x.com/KODANSHA_dish/status/2042075037763555802",detailUrl:"https://x.com/KODANSHA_dish/status/2042075037763555802",source:"knshow"},
+  {name:"名探偵コナン ハイウェイの堕天使 風のハンディファン",provider:"イオンシネマ",winners:"抽選",deadline:"2026-04-30",method:"rt",applyUrl:"https://x.com/AEON_CINEMA/status/2042135617803579568",detailUrl:"https://aeoncinema.com/cinema/twitter/2026/conan/index.html",source:"knshow"},
+  {name:"サントリー ノンデネ ドリンクチケット",provider:"サントリー",winners:"10,000名",deadline:"2026-04-30",method:"rt",applyUrl:"https://x.com/suntory",detailUrl:"https://x.com/suntory",source:"x-search"},
+  {name:"コスメデコルテ リポソーム美容液 3日間サンプル",provider:"コスメデコルテ",winners:"10,000名",deadline:"2026-04-30",method:"rt",applyUrl:"https://x.com/decorteofficial",detailUrl:"https://x.com/decorteofficial",source:"x-search"},
+  {name:"ウォルドーフ・アストリア大阪 スイートルーム宿泊+往復航空券(ペア)",provider:"不明",winners:"不明",deadline:"2026-04-30",method:"rt",applyUrl:"",detailUrl:"",source:"x-search"},
+  {name:"dポイント 最大10,000ポイント",provider:"dポイントクラブ",winners:"5,010名",deadline:"2026-04-頃(毎週開催)",method:"rt",applyUrl:"https://x.com/dpoint_club",detailUrl:"https://dpoint.docomo.ne.jp/cp_sns/dpc/dpcx_cp_dpoint/",source:"x-search"},
+  {name:"サントリー トリス れもんハイボール 2本セット",provider:"サントリー",winners:"1,000名",deadline:"2026-04月中",method:"rt",applyUrl:"https://x.com/suntory",detailUrl:"https://x.com/suntory",source:"x-search"},
+  {name:"KATE コスメ現品セット",provider:"KATE",winners:"不明",deadline:"2026-04月中",method:"rt",applyUrl:"https://x.com/kate_tokyo_jp",detailUrl:"https://x.com/kate_tokyo_jp",source:"x-search"},
+  {name:"超敏感肌用日焼け止め シソラUVミルク サンプル2包",provider:"ロート製薬",winners:"10,000名",deadline:"2026-04月中",method:"rt",applyUrl:"https://x.com/rohto_official",detailUrl:"https://x.com/rohto_official",source:"x-search"},
+  {name:"クレメ クレンジングクリーム N ミニサイズ",provider:"クレメ",winners:"50名",deadline:"2026-04月中",method:"rt",applyUrl:"",detailUrl:"",source:"x-search"},
+  {name:"Amazonギフトカード 1,000円分",provider:"雀エボライブ",winners:"3名",deadline:"2026-04月中",method:"rt",applyUrl:"https://x.com/jongevolive/status/1991513936450179139",detailUrl:"https://x.com/jongevolive/status/1991513936450179139",source:"x-search"},
+  {name:"Amazonギフト券 5,000円分",provider:"東京eスポーツフェスタ",winners:"5名",deadline:"2026-04月中",method:"rt",applyUrl:"https://x.com/esportsfesta/status/2009427652495687890",detailUrl:"https://x.com/esportsfesta/status/2009427652495687890",source:"x-search"},
+  {name:"Amazonギフト券 最大10,000円分 or QUOカード",provider:"ビルメンテナンスコンシェル",winners:"100名",deadline:"2026-04月中",method:"rt",applyUrl:"https://x.com/bmc_since2013/status/2009490672794095617",detailUrl:"https://x.com/bmc_since2013/status/2009490672794095617",source:"x-search"},
+  {name:"100万Pontaポイント(総額)",provider:"Ponta",winners:"1,000名",deadline:"2026-04月中",method:"rt+reply",applyUrl:"https://x.com/Ponta/status/1935140405462671430",detailUrl:"https://x.com/Ponta/status/1935140405462671430",source:"x-search"},
+  {name:"Amazonギフト券 最大5,000円分",provider:"メンズクリア",winners:"5名",deadline:"2026-04月中",method:"rt+reply",applyUrl:"https://x.com/mensclear/status/2022506093109481573",detailUrl:"https://x.com/mensclear/status/2022506093109481573",source:"x-search"},
+  {name:"タイトーマイルストーン4 アルカノイドTシャツ+Amazonギフトカード",provider:"タイトーゲーム",winners:"20名",deadline:"2026-04月中",method:"rt",applyUrl:"https://x.com/TAITOcorpGames",detailUrl:"https://x.com/TAITOcorpGames",source:"x-search"},
+  {name:"Klook 500円Amazonギフトカード+プレミアリーグチケット5万円引きクーポン",provider:"Klook",winners:"10名",deadline:"2026-04月中",method:"quote",applyUrl:"https://x.com/klookjp/status/2039850304095527141",detailUrl:"https://x.com/klookjp/status/2039850304095527141",source:"x-search"},
+  {name:"合宿免許WAO Amazonギフトカード",provider:"合宿免許WAO",winners:"不明",deadline:"2026-04月中",method:"rt",applyUrl:"https://www.mentoro.jp/event/event_tw.html",detailUrl:"https://www.mentoro.jp/event/event_tw.html",source:"x-search"},
+  {name:"純金からあげクン(15g)",provider:"ローソン",winners:"1名",deadline:"2026-05-04",method:"rt+reply",applyUrl:"https://x.com/akiko_lawson/status/2041320065950445672",detailUrl:"https://www.lawson.co.jp/recommend/karaagekun40th/",source:"ke-ma"},
+  {name:"からあげクン40周年 グッズ",provider:"ローソン",winners:"1名",deadline:"2026-05-04",method:"rt",applyUrl:"https://x.com/akiko_lawson",detailUrl:"https://www.lawson.co.jp/recommend/karaagekun40th/",source:"ken-kaku"},
+  {name:"グーン おむつ+おしりふきセット",provider:"エリエール",winners:"1,000名",deadline:"2026-05-07",method:"rt",applyUrl:"https://x.com/elleairofficial",detailUrl:"https://x.com/elleairofficial",source:"ke-ma"},
+  {name:"アサヒビール 350ml×6缶パック",provider:"アサヒビール",winners:"1,000名",deadline:"2026-05-31",method:"rt+reply",applyUrl:"https://x.com/asahibeer_jp/status/2040987863953662182",detailUrl:"https://x.com/asahibeer_jp/status/2040987863953662182",source:"ken-kaku"},
+  {name:"1OC Vol.8 船津稜雅サイン入りチェキ",provider:"宝島社ムック局",winners:"2名",deadline:"2026-05-31",method:"rt+reply",applyUrl:"https://x.com/TakarajimaMook/status/2042407967832883507",detailUrl:"https://x.com/TakarajimaMook/status/2042407967832883507",source:"knshow"},
+  {name:"アサヒ ゼロ 350ml×6缶 ビール好きの本音キャンペーン",provider:"アサヒビール",winners:"1,000名",deadline:"2026-05-31",method:"rt",applyUrl:"https://x.com/asahibeer_jp",detailUrl:"https://x.com/asahibeer_jp",source:"x-search"},
+  {name:"あおぞら銀行 フォロー&リポストキャンペーン",provider:"あおぞら銀行",winners:"不明",deadline:"2026-05月中",method:"rt",applyUrl:"https://www.aozorabank.co.jp/lp/bank/x-campaign-202505.html",detailUrl:"https://www.aozorabank.co.jp/lp/bank/x-campaign-202505.html",source:"x-search"},
+  {name:"QUOカード 500円分 異世界マンチキンキービジュアル",provider:"異世界マンチキン",winners:"13名",deadline:"2026-05月中",method:"rt",applyUrl:"https://x.com/isekai_munchkin",detailUrl:"https://isekai-munchkin.com/archives/101",source:"x-search"},
+  {name:"ハーゲンダッツ ギフトカード+グッズ",provider:"ミルクランド北海道",winners:"350名",deadline:"2026-06-02",method:"rt+reply",applyUrl:"https://www.milkland-hokkaido.com/milkland-kingdom/",detailUrl:"https://www.milkland-hokkaido.com/milkland-kingdom/",source:"ke-ma"}
+];
+
+const TODAY = new Date();
+TODAY.setHours(0,0,0,0);
+
+const HISTORY = [
+  {id:1,date:"2026-04-10",account:"@chanceitpresent",tweetUrl:"https://x.com/chanceitpresent/status/2042392119940194405",content:"平日限定で毎日3名様にプレゼント",deadline:"翌日9時",status:"応募済"},
+  {id:2,date:"2026-04-10",account:"@famima_now",tweetUrl:"https://x.com/famima_now/status/2042377013395091736",content:"もーっちり食感ホイップあんぱん無料クーポン 3,000名",deadline:"2026-04-11",status:"応募済"},
+  {id:3,date:"2026-04-10",account:"@DaiblosCore_JP",tweetUrl:"https://x.com/DaiblosCore_JP/status/2042346820928749817",content:"えらべるPay最大30,000円分 3,000名",deadline:"2026-04-11",status:"応募済"},
+  {id:4,date:"2026-04-10",account:"@okaimono_ONE",tweetUrl:"https://x.com/okaimono_ONE/status/2042407220319830378",content:"CokeONドリンクチケット170円分 1,000名",deadline:"2026-04-30",status:"応募済"},
+  {id:5,date:"2026-04-10",account:"@Loctite_Japan",tweetUrl:"https://x.com/Loctite_Japan/status/2042407333519900994",content:"Amazonギフトカード500円分 100名",deadline:"2026-04-23",status:"応募済"},
+  {id:6,date:"2026-04-10",account:"@kyoto_nishiri",tweetUrl:"https://x.com/kyoto_nishiri/status/2039176058013143092",content:"京漬物 555名",deadline:"2026-04-15",status:"応募済"},
+  {id:7,date:"2026-04-10",account:"@PremiumMalts_jp",tweetUrl:"https://x.com/PremiumMalts_jp/status/2042150529078567359",content:"プレモル350ml×6缶 100名",deadline:"2026-04-16",status:"応募済"},
+  {id:8,date:"2026-04-10",account:"@sapporo1ban_jp",tweetUrl:"https://x.com/sapporo1ban_jp/status/2042438670775722213",content:"サッポロ一番しょうゆ味5食パック 最大100名",deadline:"2026-05-10",status:"応募済"},
+  {id:9,date:"2026-04-10",account:"@nichirei_foods",tweetUrl:"https://x.com/nichirei_foods/status/2042407222395678910",content:"今田美桜イラスト入りプレート+冷凍炒飯 275名",deadline:"2026-05-11",status:"応募済"},
+  {id:10,date:"2026-04-10",account:"@transino_jp",tweetUrl:"https://x.com/transino_jp/status/2039870498465784203",content:"トランシーノ美白化粧水&乳液サンプル 5,000名",deadline:"2026-05-17",status:"応募済"},
+  {id:11,date:"2026-04-10",account:"@CokeON",tweetUrl:"https://x.com/CokeON/status/2041652240138826018",content:"CokeONポイント10万円分+限定スタンプ 100,000名",deadline:"2026-04-30",status:"応募済"},
+  {id:12,date:"2026-04-10",account:"@BountyhuntersJP",tweetUrl:"https://x.com/BountyhuntersJP/status/2041108659007345104",content:"Amazonギフト最大1万円分 1,000名",deadline:"2026-04-12",status:"応募済"},
+  {id:13,date:"2026-04-10",account:"@raburaku_ko",tweetUrl:"https://x.com/raburaku_ko/status/2041709298422837700",content:"選べるギフト10,000円分 5名(毎日抽選)",deadline:"2026-04-12",status:"応募済"},
+  {id:14,date:"2026-04-10",account:"@foodwastesos",tweetUrl:"https://x.com/foodwastesos/status/2042088025790808248",content:"PayPay6,000円 or 生キャラメルセット 1名",deadline:"2026-04-11",status:"応募済"},
+  {id:15,date:"2026-04-10",account:"@McDonaldsJapan",tweetUrl:"https://x.com/McDonaldsJapan/status/2042429863655522514",content:"マックカード1,000円分 50名",deadline:"2026-04-11",status:"応募済"},
+  {id:16,date:"2026-04-10",account:"@amayakashi_312",tweetUrl:"https://x.com/amayakashi_312/status/2031928173663863278",content:"giftee Sweets Box 3,000円分 12名",deadline:"2026-04-11",status:"応募済"},
+  {id:17,date:"2026-04-10",account:"@mushokutensei_C",tweetUrl:"https://x.com/mushokutensei_C/status/2040626616582480227",content:"Amazonギフト1,000円分+サイン色紙 7名",deadline:"2026-04-11",status:"応募済"},
+  {id:18,date:"2026-04-10",account:"@mantle_talkntv",tweetUrl:"https://x.com/mantle_talkntv/status/2040989710596948155",content:"名探偵コナン ポスター+ハンディファン 15名",deadline:"2026-04-11",status:"応募済"},
+  {id:19,date:"2026-04-10",account:"@peer_conne",tweetUrl:"https://x.com/peer_conne/status/2038541752341320162",content:"giftee Box 1,000円分 30名",deadline:"2026-04-12",status:"応募済"},
+  {id:20,date:"2026-04-10",account:"@narisen_katobu",tweetUrl:"https://x.com/narisen_katobu/status/2038994751341604881",content:"Amazonギフト券最大1,000円分 23名",deadline:"2026-04-12",status:"応募済"},
+  {id:21,date:"2026-04-10",account:"@beppukeirin",tweetUrl:"https://x.com/beppukeirin/status/2042377015173480612",content:"QUOカード500円分 20名",deadline:"2026-04-12",status:"応募済"},
+  {id:22,date:"2026-04-13",account:"@kincho_pr",tweetUrl:"https://x.com/kincho_pr/status/2041682441744589272",content:"QUOカードPay1万円分+金色シンカトリ容器 1,010名/週【第2週】",deadline:"2026-04-14",status:"応募済"},
+  {id:23,date:"2026-04-13",account:"@QUOcardPay",tweetUrl:"https://x.com/QUOcardPay/status/2041795684446175245",content:"QUOカードPay 10,000円分or1,000円分 70名",deadline:"2026-04-15",status:"応募済"},
+  {id:24,date:"2026-04-13",account:"@game_watch",tweetUrl:"https://x.com/game_watch/status/2041712642163933633",content:"Amazonギフトカード10,000円分 2名",deadline:"2026-04-15",status:"応募済"},
+  {id:25,date:"2026-04-13",account:"@pigg_u_staff",tweetUrl:"https://x.com/pigg_u_staff/status/2041843033994395650",content:"Amazonギフトカード1,000円分 250名",deadline:"2026-04-16",status:"応募済"},
+  {id:26,date:"2026-04-13",account:"@daiseijo_anime",tweetUrl:"https://x.com/daiseijo_anime/status/2042528089041965399",content:"えらべるPay最大10,000円分 1,000名",deadline:"2026-04-30",status:"応募済"},
+  {id:27,date:"2026-04-13",account:"@edion_PR",tweetUrl:"https://x.com/edion_PR/status/2012540492932882492",content:"えらべるPay200P+WチャンスQUO30,000円分 500名",deadline:"2026-04-19",status:"応募済"},
+  {id:28,date:"2026-04-13",account:"@mufgcr_official",tweetUrl:"https://x.com/mufgcr_official/status/2025390084800061581",content:"QUOカードPay500円分 2,000名",deadline:"2026-04-30",status:"応募済"},
+  {id:29,date:"2026-04-13",account:"@Sky_career_",tweetUrl:"https://x.com/Sky_career_/status/2033408140495216718",content:"Amazonギフトカード500円分 500名(毎日参加可)",deadline:"2026-04-30",status:"応募済"},
+  {id:30,date:"2026-04-13",account:"@Sky_recruiting",tweetUrl:"https://x.com/Sky_recruiting/status/2023246092079628619",content:"Amazonギフトカード500円分 300名(毎日参加可)",deadline:"2026-04-30",status:"応募済"},
+  {id:31,date:"2026-04-13",account:"@snoopy_drops",tweetUrl:"https://x.com/snoopy_drops/status/2039976200165294190",content:"ローソンマチカフェ 4月キャンペーン",deadline:"2026-04-22",status:"応募済"},
+  {id:32,date:"2026-04-13",account:"@yamazakipan_cp",tweetUrl:"https://x.com/yamazakipan_cp/status/2041682441530962081",content:"東京ディズニーシー招待 5組10名様",deadline:"2026-04-15",status:"応募済"},
+  {id:33,date:"2026-04-13",account:"@Fri_mystery_ntv",tweetUrl:"https://x.com/Fri_mystery_ntv/status/2042739410274521401",content:"ギフトコード10,000円分 10名",deadline:"2026-04-17",status:"応募済"},
+  {id:34,date:"2026-04-13",account:"@meijiyasuda_pr",tweetUrl:"https://x.com/meijiyasuda_pr/status/2042799809833189400",content:"オリジナルQUOカード2,000円分 80名",deadline:"2026-04-30",status:"応募済"},
+  {id:35,date:"2026-04-13",account:"@unifi_x_jp",tweetUrl:"https://x.com/unifi_x_jp/status/1973305173272567915",content:"えらべるPay最大10,000円分 その場で当たる",deadline:"2026-04-30",status:"応募済","resultType":"instant","resultUrl":"https://lin.ee/Cc8jbwB/qbko"},
+  {id:36,date:"2026-04-13",account:"@dot_abyss_pr",tweetUrl:"https://x.com/dot_abyss_pr/status/2043237689827242051",content:"Amazonギフトカード最大10,000円分 100名 その場で当たる",deadline:"2026-04-13",status:"落選","resultType":"instant","resultUrl":"https://present.social-camp.com/dot_abyss_pr/319236818727","resultChecked":true},
+  {id:37,date:"2026-04-13",account:"@ToeiVideo",tweetUrl:"https://x.com/ToeiVideo/status/2039550431874199761",content:"呪怨オリジナルQUOカード500円分 200名",deadline:"2026-04-22",status:"応募済"},
+  {id:38,date:"2026-04-13",account:"@girlscreationPR",tweetUrl:"https://x.com/girlscreationPR/status/2042800922557120841",content:"Amazonギフトカード最大10,000円分 93名 その場で当たる",deadline:"2026-04-13",status:"落選","resultType":"instant","resultUrl":"https://present.social-camp.com/girlscreationPR/995327068859","resultChecked":true},
+  {id:39,date:"2026-04-13",account:"@AUTOBACS_COM",tweetUrl:"https://x.com/AUTOBACS_COM/status/2040964383367733464",content:"愛車艶ピカセット最大2万円以上 40名 写真投稿必要",deadline:"2026-05-10",status:"応募済"},
+  {id:40,date:"2026-04-13",account:"@youmetown_",tweetUrl:"https://x.com/youmetown_/status/2042413034631774502",content:"パンのおともグッズ 30名",deadline:"2026-04-20",status:"応募済"},
+  {id:41,date:"2026-04-13",account:"@ohayoukai_jp",tweetUrl:"https://x.com/ohayoukai_jp/status/2040263092165095439",content:"Amazonギフトカード2,000円分 20名",deadline:"2026-04-20",status:"応募済"},
+  {id:42,date:"2026-04-13",account:"@ohayoukai_jp",tweetUrl:"https://x.com/ohayoukai_jp/status/2040987862636933339",content:"Nintendo Switch 1名+アマギフ1,000円分 15名",deadline:"2026-04-19",status:"応募済"},
+  {id:43,date:"2026-04-13",account:"@iwatobinekoFTB",tweetUrl:"https://x.com/iwatobinekoFTB/status/2042073771541168278",content:"透乃眼所長クリア名刺 90名",deadline:"2026-04-22",status:"応募済"},
+  {id:44,date:"2026-04-13",account:"@donki_donki",tweetUrl:"https://x.com/donki_donki/status/2043343460242268524",content:"PlayStation5 2名",deadline:"2026-04-19",status:"応募済"},
+  {id:45,date:"2026-04-13",account:"@Mofuhamu_7",tweetUrl:"https://x.com/Mofuhamu_7/status/2043343381338984792",content:"Amazonギフトカード5,000円分 毎日1名",deadline:"2026-04-22",status:"応募済"},
+  {id:46,date:"2026-04-13",account:"@cocomuu_atelier",tweetUrl:"https://x.com/cocomuu_atelier/status/2043343472657314050",content:"QUOカードPay最大10,000円分 100名 その場で当たる",deadline:"2026-04-16",status:"落選","resultType":"instant","resultUrl":"https://present.social-camp.com/cocomuu_atelier/135841482663","resultChecked":true},
+  {id:47,date:"2026-04-13",account:"@joshin_info",tweetUrl:"https://x.com/joshin_info/status/2039161047895126301",content:"Joshin専用QUOカードPay 1000名 その場で当たる",deadline:"2026-04-24",status:"落選","resultType":"instant","resultUrl":"https://present.social-camp.com/joshin_info/41535764973","resultChecked":true},
+  {id:48,date:"2026-04-13",account:"@nigirichojiro",tweetUrl:"https://x.com/nigirichojiro/status/2041305050048516150",content:"デジタルクーポン券 50名 その場で当たる",deadline:"2026-04-20",status:"落選","resultType":"instant","resultUrl":"https://present.social-camp.com/nigirichojiro/158972989358","resultChecked":true},
+  {id:49,date:"2026-04-13",account:"@GBO_f_hgsn",tweetUrl:"https://x.com/GBO_f_hgsn/status/2039161068849873196",content:"選べるe-GIFT 1,000円分 50名 その場で当たる",deadline:"2026-04-20",status:"落選","resultType":"instant","resultUrl":"https://present.social-camp.com/GBO_f_hgsn/676232173448","resultChecked":true},
+  {id:50,date:"2026-04-13",account:"@tamago_himawari",tweetUrl:"https://x.com/tamago_himawari/status/2042413606701326508",content:"玉子焼ひまわりセット 40名 その場で当たる",deadline:"2026-04-14",status:"落選","resultType":"instant","resultUrl":"https://present.social-camp.com/tamago_himawari/63099078475","resultChecked":true},
+  {id:51,date:"2026-04-13",account:"@akiko_lawson",tweetUrl:"https://x.com/akiko_lawson/status/2043101792800580092",content:"カフェラテ無料券 毎日1万名様",deadline:"2026-04-13",status:"応募済"},
+  {id:52,date:"2026-04-13",account:"@KFC_jp",tweetUrl:"https://x.com/KFC_jp/status/2042981003959111988",content:"無料お試し券 1万名様",deadline:"2026-04-20",status:"応募済"},
+  {id:53,date:"2026-04-13",account:"@famima_now",tweetUrl:"https://x.com/famima_now/status/2043101792624406826",content:"ピザパン無料クーポン 3,000名",deadline:"2026-04-14",status:"応募済"},
+  {id:54,date:"2026-04-13",account:"@suntory",tweetUrl:"https://x.com/suntory/status/2043131990061228335",content:"オールフリーエールテイスト2缶セット",deadline:"2026-04-13",status:"応募済"},
+  {id:55,date:"2026-04-13",account:"@suntory",tweetUrl:"https://x.com/suntory/status/2043101789226996051",content:"赤玉パンチQUOカードPay1,000円分 500名",deadline:"2026-04-30",status:"応募済"},
+  {id:56,date:"2026-04-13",account:"@seims_official",tweetUrl:"https://x.com/seims_official/status/2043086845903536386",content:"サントリー天然水きりっと果実スカッシュ無料引換券 1,500名 その場で当たる",deadline:"2026-04-13",status:"応募済","resultType":"instant","resultUrl":"https://present.social-camp.com/seims_official/606"},
+  {id:57,date:"2026-04-13",account:"@koraakakara",tweetUrl:"https://x.com/koraakakara/status/2043102083046662559",content:"アプリクーポン5,000円OFF 10名 その場で当たる",deadline:"2026-04-15",status:"落選","resultType":"instant","resultUrl":"https://present.social-camp.com/koraakakara/693912765701","resultChecked":true},
+  {id:58,date:"2026-04-13",account:"@joshin_info",tweetUrl:"https://x.com/joshin_info/status/2042558304648597961",content:"よしもとゲーミングサイン入りチェキ 10名",deadline:"2026-04-20",status:"応募済"},
+  {id:59,date:"2026-04-13",account:"@GBO_shinsaiP",tweetUrl:"https://x.com/GBO_shinsaiP/status/2039161092996563033",content:"選べるe-GIFT500円分 50名 その場で当たる",deadline:"2026-04-20",status:"応募済","resultType":"instant","resultUrl":"https://present.social-camp.com/GBO_shinsaiP/"},
+  {id:60,date:"2026-04-13",account:"@gasha_llpebina",tweetUrl:"https://x.com/gasha_llpebina/status/2039161078861730014",content:"選べるe-GIFT500円分 50名 その場で当たる",deadline:"2026-04-20",status:"応募済","resultType":"instant","resultUrl":"https://present.social-camp.com/gasha_llpebina/"},
+  {id:61,date:"2026-04-13",account:"@Stardive_JP",tweetUrl:"https://x.com/Stardive_JP/status/2043267885074645286",content:"えらべるPay 最大10,000名様",deadline:"2026-04-15",status:"応募済"},
+  {id:62,date:"2026-04-13",account:"@ayarabu_info",tweetUrl:"https://x.com/ayarabu_info/status/2043252790693109864",content:"えらべるPay最大1万円分 その場で当たる",deadline:"2026-04-13",status:"応募済","resultType":"instant","resultUrl":"https://present.social-camp.com/ayarabu_info/4346735"},
+  {id:63,date:"2026-04-13",account:"@ORICOdeNORU",tweetUrl:"https://x.com/ORICOdeNORU/status/2043162594043945175",content:"Amazonギフトカード500円分 合計10名 その場で当たる",deadline:"2026-04-13",status:"落選","resultType":"instant","resultUrl":"https://present.social-camp.com/ORICOdeNORU/190657417652","resultChecked":true},
+  {id:64,date:"2026-04-13",account:"@donki_donki",tweetUrl:"https://x.com/donki_donki/status/2043343460242268524",content:"PlayStation5 2名",deadline:"2026-04-19",status:"応募済"},
+  {id:65,date:"2026-04-13",account:"@wedding_ainaka",tweetUrl:"https://x.com/wedding_ainaka/status/2043313685851263037",content:"東城日沙子サイン入り色紙 1名",deadline:"2026-04-17",status:"応募済"},
+  {id:66,date:"2026-04-13",account:"@amy_cosmetics",tweetUrl:"https://x.com/amy_cosmetics/status/2043282983436898786",content:"クリオ グレーズリップセラム 2名",deadline:"2026-04-24",status:"応募済"},
+  {id:67,date:"2026-04-13",account:"@akkkkiy",tweetUrl:"https://x.com/akkkkiy/status/2043273985417433446",content:"直筆サイン入り立体アクリルスタンド 10名",deadline:"不明",status:"応募済"},
+  {id:68,date:"2026-04-13",account:"@MiniTool_Japan",tweetUrl:"https://x.com/MiniTool_Japan/status/2042905496940597412",content:"Amazonギフト券1000円分×5名 + MovieMaker年間プラン×5名",deadline:"不明",status:"応募済"},
+  {id:69,date:"2026-04-13",account:"@RiichiCity_JP",tweetUrl:"https://x.com/RiichiCity_JP/status/2042875300472852494",content:"Amazonギフト券1000円分 5名",deadline:"2026-04-14",status:"応募済"},
+  {id:70,date:"2026-04-13",account:"@RiichiCity_JP",tweetUrl:"https://x.com/RiichiCity_JP/status/2042807350210240522",content:"Amazonギフト券1000円分 5名（新雀士記念）",deadline:"2026-04-14",status:"応募済"},
+  {id:71,date:"2026-04-13",account:"@PokerFate_JP",tweetUrl:"https://x.com/PokerFate_JP/status/2042799799456665937",content:"Amazonギフト券1000円分 3名",deadline:"2026-04-25",status:"応募済"},
+  {id:72,date:"2026-04-13",account:"@Kanpy_official",tweetUrl:"https://x.com/Kanpy_official/status/2041712648371196002",content:"カンピーちゃんぬいぐるみ 7名",deadline:"2026-04-14",status:"応募済"},
+  {id:73,date:"2026-04-13",account:"@game_watch",tweetUrl:"https://x.com/game_watch/status/2041350250842173713",content:"PS5 デジタル・エディション 1名",deadline:"2026-04-14",status:"応募済"},
+  {id:74,date:"2026-04-14",account:"@famima_now",tweetUrl:"https://x.com/famima_now/status/2043464180083122518",content:"ファミリーマート ピザパン無料クーポン",deadline:"2026-04-14",status:"応募済","resultType":"dm"},
+  {id:75,date:"2026-04-14",account:"@KFC_jp",tweetUrl:"https://x.com/KFC_jp/status/2043343381456146911",content:"KFC レモン旨塩チキン無料お試し券(1万名)",deadline:"2026-04-20",status:"応募済","resultType":"dm"},
+  {id:76,date:"2026-04-14",account:"@bikkuri__donkey",tweetUrl:"https://x.com/bikkuri__donkey/status/2043464179567444257",content:"びっくりドンキー お食事券10,000円分(20名)",deadline:"2026-04-30",status:"応募済","resultType":"dm"},
+  {id:77,date:"2026-04-14",account:"@cocomuu_atelier",tweetUrl:"https://x.com/cocomuu_atelier/status/2043705824141541394",content:"ококомー QUOカードPay最大10000円分(100名) 毎日",deadline:"2026-04-16",status:"落選","resultType":"instant","resultUrl":"https://present.social-camp.com/cocomuu_atelier/939661986432/lose","resultChecked":true},
+  {id:78,date:"2026-04-14",account:"@graniph_updates",tweetUrl:"https://x.com/graniph_updates/status/2043616253651431629",content:"グラニフ ランダムTシャツ＆チャームセット(15名) 毎日",deadline:"2026-04-20",status:"落選","resultType":"instant","resultUrl":"https://present.social-camp.com/graniph_updates/256764502322/lose","resultChecked":true},
+  {id:79,date:"2026-04-14",account:"@mapple_editor",tweetUrl:"https://x.com/mapple_editor/status/2043527005195616451",content:"まっぷる GW旅先ルーレット まっぷるマガジン(30名)",deadline:"2026-04-20",status:"落選","resultType":"instant","resultUrl":"https://present.social-camp.com/mapple_editor/176637834713/lose","resultChecked":true},
+  {id:80,date:"2026-04-14",account:"@koraakakara",tweetUrl:"https://x.com/koraakakara/status/2043464456769069563",content:"赤から アプリクーポン5,000円OFF(10名)",deadline:"2026-04-14",status:"落選","resultType":"instant","resultUrl":"https://present.social-camp.com/koraakakara/693912765701/lose","resultChecked":true},
+  {id:81,date:"2026-04-14",account:"@GBO_tachikawaT",tweetUrl:"https://x.com/GBO_tachikawaT/status/2039161093378187271",content:"ガシャポン立川髙島屋 選べるe-GIFT 500円分(50名) 毎日",deadline:"2026-04-20",status:"落選","resultType":"instant","resultUrl":"https://present.social-camp.com/GBO_tachikawaT/459720180521/lose","resultChecked":true},
+  {id:82,date:"2026-04-14",account:"@GBO_f_hgsn",tweetUrl:"https://x.com/GBO_f_hgsn/status/2039161068849873196",content:"ガシャポン東根 選べるe-GIFT 1,000円分(50名) 毎日",deadline:"2026-04-20",status:"落選","resultType":"instant","resultUrl":"https://present.social-camp.com/GBO_f_hgsn/676232173448/lose","resultChecked":true},
+  {id:83,date:"2026-04-14",account:"@gasha_llpebina",tweetUrl:"https://x.com/gasha_llpebina/status/2039161078861730014",content:"ガシャポン海老名 選べるe-GIFT 500円分(50名) 毎日",deadline:"2026-04-20",status:"落選","resultType":"instant","resultUrl":"https://present.social-camp.com/gasha_llpebina/974292247976/lose","resultChecked":true},
+  {id:84,date:"2026-04-14",account:"@GBO_shinsaiP",tweetUrl:"https://x.com/GBO_shinsaiP/status/2039161092996563033",content:"ガシャポン心斎橋PARCO 選べるe-GIFT 500円分(50名) 毎日",deadline:"2026-04-20",status:"落選","resultType":"instant","resultUrl":"https://present.social-camp.com/GBO_shinsaiP/276018794779/lose","resultChecked":true},
+  {id:85,date:"2026-04-14",account:"@eaidem_tw",tweetUrl:"https://x.com/eaidem_tw/status/2042438402252112183",content:"イーアイデム 選べるe-GIFT 5000円分(10名) 毎日",deadline:"2026-04-30",status:"落選","resultType":"instant","resultUrl":"https://present.social-camp.com/eaidem_tw/419786621098/lose","resultChecked":true},
+  {id:86,date:"2026-04-14",account:"@tokutoku_oic",tweetUrl:"https://x.com/tokutoku_oic/status/2039659350739009740",content:"得得 デジタル500円引きクーポン(100名)",deadline:"2026-04-30",status:"落選","resultType":"instant","resultUrl":"https://present.social-camp.com/tokutoku_oic/669418210430/lose","resultChecked":true},
+  {id:87,date:"2026-04-14",account:"@kazokutei_oic",tweetUrl:"https://x.com/kazokutei_oic/status/2039659352421003559",content:"家族亭 デジタル500円引きクーポン(100名)",deadline:"2026-04-30",status:"落選","resultType":"instant","resultUrl":"https://present.social-camp.com/kazokutei_oic/635340255840/lose","resultChecked":true},
+  {id:88,date:"2026-04-14",account:"@i8791",tweetUrl:"https://x.com/i8791/status/2043645378441163216",content:"花キューピット お花プレゼント 毎日",deadline:"2026-04-14",status:"応募済","resultType":"dm"},
+  {id:89,date:"2026-04-14",account:"@Ponta_Oversea",tweetUrl:"https://x.com/Ponta_Oversea/status/2043524597103141244",content:"Ponta×韓国コンビニCU Pontaポイント 毎日",deadline:"2026-04-30",status:"応募済","resultType":"dm"},
+  {id:90,date:"2026-04-14",account:"@prune_fan",tweetUrl:"https://x.com/prune_fan/status/2043569875994698046",content:"プルーン協会 最高10,000円分デジタルギフト券",deadline:"2026-04-30",status:"応募済","resultType":"instant"},
+  {id:91,date:"2026-04-14",account:"@MiniTool_Japan",tweetUrl:"https://x.com/MiniTool_Japan/status/2043630273196139006",content:"MiniTool 春の応援キャンペーン Amazonギフト券1000円分(5名)",deadline:"2026-04-19",status:"応募済","resultType":"dm"},
+  {id:92,date:"2026-04-14",account:"@sealine_jp",tweetUrl:"https://x.com/sealine_jp/status/2043856694913204554",content:"ボンボンドロップシール各種(各2名計10名) 本日締切",deadline:"2026-04-14",status:"応募済","resultType":"dm"},
+  {id:93,date:"2026-04-14",account:"@YBC_jp",tweetUrl:"https://x.com/YBC_jp/status/2043856844205216242",content:"チップスター50周年 毎日抽選",deadline:"2026-04-15",status:"応募済","resultType":"dm"},
+  {id:94,date:"2026-04-14",account:"@wsrtcg",tweetUrl:"https://x.com/wsrtcg/status/2043871863688904977",content:"ヴァイスシュヴァルツロゼ ブースターパック「アリスソフト」1BOX(3名)",deadline:"2026-04-15",status:"応募済","resultType":"dm"},
+  {id:95,date:"2026-04-14",account:"@KarcherJapan",tweetUrl:"https://x.com/KarcherJapan/status/2043876937861575100",content:"ケルヒャー高圧洗浄機(3名)/QUOカードPay千円分(30名)",deadline:"2026-04-30",status:"応募済","resultType":"dm"},
+  {id:96,date:"2026-04-14",account:"@joseiseven",tweetUrl:"https://x.com/joseiseven/status/2043875044041077032",content:"コーヒーメーカー(1名)",deadline:"2026-04-27",status:"応募済","resultType":"dm"},
+  {id:97,date:"2026-04-14",account:"@tospo_boatrace",tweetUrl:"https://x.com/tospo_boatrace/status/2043872618877800906",content:"オリジナルタオル(5名) 宮島マスターズチャンピオン記念",deadline:"2026-04-21",status:"応募済","resultType":"dm"},
+  {id:98,date:"2026-04-14",account:"@GEO_official",tweetUrl:"https://x.com/GEO_official/status/2043858096234348952",content:"秒速5センチメートルトートバッグ(2名)",deadline:"2026-04-15",status:"応募済","resultType":"dm"},
+  {id:99,date:"2026-04-14",account:"@mizkan_official",tweetUrl:"https://x.com/mizkan_official/status/2043856769777062268",content:"おいしいビネガーケア3種+チェキ(10名)",deadline:"2026-04-16",status:"応募済","resultType":"dm"},
+  {id:100,date:"2026-04-14",account:"@sofy_jp",tweetUrl:"https://x.com/sofy_jp/status/2043871864863240554",content:"ソフィCOOLナプキンセット(150名)",deadline:"2026-04-30",status:"応募済","resultType":"dm"},
+  {id:101,date:"2026-04-14",account:"@cs_yukarigaoka",tweetUrl:"https://x.com/cs_yukarigaoka/status/2043856768820814278",content:"ひつじ探偵団 ムビチケオンライン2組4名 シネマサンシャインユーカリが丘",deadline:"2026-04-27",status:"応募済","resultType":"dm"},
+  {id:102,date:"2026-04-14",account:"@cs_lalaponumazu",tweetUrl:"https://x.com/cs_lalaponumazu/status/2043856765981470814",content:"ひつじ探偵団 ムビチケオンライン2組4名 シネマサンシャインららぽーと沼津",deadline:"2026-04-27",status:"応募済","resultType":"dm"},
+  {id:103,date:"2026-04-14",account:"@cs_kitajima",tweetUrl:"https://x.com/cs_kitajima/status/2043841669989032105",content:"ひつじ探偵団 ムビチケオンライン2組4名 シネマサンシャイン北島",deadline:"2026-04-27",status:"応募済","resultType":"dm"},
+  {id:104,date:"2026-04-14",account:"@aira_cs",tweetUrl:"https://x.com/aira_cs/status/2043841666495459538",content:"ひつじ探偵団 ムビチケオンライン2組4名 シネマサンシャイン姶良",deadline:"2026-04-27",status:"応募済","resultType":"dm"},
+  {id:105,date:"2026-04-14",account:"@sunshine_imax",tweetUrl:"https://x.com/sunshine_imax/status/2043841665555636577",content:"ひつじ探偵団 ムビチケオンライン2組4名 シネマサンシャイン大和郡山",deadline:"2026-04-27",status:"応募済","resultType":"dm"},
+  {id:106,date:"2026-04-14",account:"@UA_glr_fan",tweetUrl:"https://x.com/UA_glr_fan/status/2043855020026958022",content:"ウェルネスシューズ(4名) グリーンレーベルリラクシング",deadline:"2026-04-30",status:"応募済","resultType":"dm"},
+  {id:107,date:"2026-04-14",account:"@iwatsu01print",tweetUrl:"https://x.com/iwatsu01print/status/2043856767054971218",content:"母の日プレゼント(1名) 岩崎通信機×経営支援サービス",deadline:"2026-04-20",status:"応募済","resultType":"dm"},
+  {id:108,date:"2026-04-14",account:"@tamago_himawari",tweetUrl:"https://x.com/tamago_himawari/status/2042413606701326508",content:"玉子焼ひまわりセット(40名)",deadline:"2026-04-14",status:"落選","resultType":"instant","resultUrl":"https://present.social-camp.com/tamago_himawari/63099078475/lose","resultChecked":true},
+  {id:109,date:"2026-04-14",account:"@cs_iizuka",tweetUrl:"https://x.com/cs_iizuka/status/2043871865173598710",content:"ひつじ探偵団 ムビチケオンライン2組4名 シネマサンシャイン飯塚",deadline:"2026-04-27",status:"応募済","resultType":"dm"},
+  {id:110,date:"2026-04-14",account:"@TBSR_PR",tweetUrl:"https://x.com/TBSR_PR/status/2043856766908195192",content:"サントリー ロコモアWATER&セサミン1000各1ケース(10名) TBSラジオ",deadline:"2026-04-19",status:"応募済","resultType":"dm"},
+  {id:111,date:"2026-04-14",account:"@ajipon_mizkan",tweetUrl:"https://x.com/ajipon_mizkan/status/2043486826581930240",content:"ドラえもん味ぽんキャップカバー&味ぽん2種セット(30名)",deadline:"2026-04-20",status:"応募済","resultType":"dm"},
+  {id:112,date:"2026-04-14",account:"@seims_official",tweetUrl:"https://x.com/seims_official/status/2042875633265709310",content:"クレバー高吸収プロテイン(30名) セイムス",deadline:"2026-04-18",status:"応募済","resultType":"dm"},
+  {id:113,date:"2026-04-14",account:"@nipponluna",tweetUrl:"https://x.com/nipponluna/status/2043509480575680931",content:"春の新商品詰め合わせ 20名",deadline:"未記載",status:"応募済","resultType":"dm"},
+  {id:114,date:"2026-04-14",account:"@Ume_bsfuji",tweetUrl:"https://x.com/Ume_bsfuji/status/2043826569932878074",content:"QUOカードPay500円×400名 4/15 7:59まで",deadline:"2026-04-15",status:"応募済","resultType":"dm"},
+  {id:115,date:"2026-04-14",account:"@Timee_official",tweetUrl:"https://x.com/Timee_official/status/2043555088481087998",content:"Amazonギフト1万円×5名",deadline:"未記載",status:"応募済","resultType":"dm"},
+  {id:116,date:"2026-04-14",account:"@foodtown_JP",tweetUrl:"https://x.com/foodtown_JP/status/2043661673576493097",content:"セブンイレブンカレーパン引換券",deadline:"未記載",status:"応募済","resultType":"dm"},
+  {id:117,date:"2026-04-14",account:"@glico_cafeore",tweetUrl:"https://x.com/glico_cafeore/status/2043811473429016895",content:"えらべるPay200ポイント インスタントウィン 本日最終日",deadline:"2026-04-14",status:"応募済","resultType":"instant"},
+  {id:118,date:"2026-04-14",account:"@CARNEXT_JP",tweetUrl:"https://x.com/CARNEXT_JP/status/2043811468043493821",content:"えらべるPay最大10000円分 200名 4/15 6:59まで",deadline:"2026-04-15",status:"応募済","resultType":"dm"},
+  {id:119,date:"2026-04-14",account:"@yuzuan_official",tweetUrl:"https://x.com/yuzuan_official/status/2043811634393821456",content:"アプリクーポン10000円分 10名 ゆず庵",deadline:"未記載",status:"応募済","resultType":"dm"},
+  {id:120,date:"2026-04-14",account:"@sega_girls",tweetUrl:"https://x.com/sega_girls/status/2043887042095128949",content:"名探偵コナン XrossLinkフィギュア 2種セット 3名",deadline:"未記載",status:"応募済","resultType":"dm"},
+  {id:121,date:"2026-04-14",account:"@rakutentv_japan",tweetUrl:"https://x.com/rakutentv_japan/status/2043887019445891346",content:"柑橘の雫・飲むゼリー4種類 & 楽天ポイント5000ポイント",deadline:"未記載",status:"応募済","resultType":"dm"},
+  {id:122,date:"2026-04-14",account:"@SD_oripa",tweetUrl:"https://x.com/SD_oripa/status/2043886974948520147",content:"ニンジャスピナー1BOX 1名 4/30まで",deadline:"2026-04-30",status:"応募済","resultType":"dm"},
+  {id:123,date:"2026-04-14",account:"@agdeo24",tweetUrl:"https://x.com/agdeo24/status/2043886967151309036",content:"銀のロールオン インスタントウィン 240名 4/19まで",deadline:"2026-04-19",status:"応募済","resultType":"dm"},
+  {id:124,date:"2026-04-14",account:"@BAOBAO_JP",tweetUrl:"https://x.com/BAOBAO_JP/status/2043886964353708171",content:"Amazonギフト券総額10000円分 毎日応募 4/15 11:59まで",deadline:"2026-04-15",status:"応募済","resultType":"dm"},
+  {id:125,date:"2026-04-14",account:"@anipoke_PR",tweetUrl:"https://x.com/anipoke_PR/status/2043886963737145689",content:"コダックビーズソファ 10名 4/16まで",deadline:"2026-04-16",status:"応募済","resultType":"dm"},
+  {id:126,date:"2026-04-14",account:"@dospara_web",tweetUrl:"https://x.com/dospara_web/status/2043887597144223987",content:"ドスパラセレクト PCパーツ5点+OS 1名 4/19まで",deadline:"2026-04-19",status:"応募済","resultType":"dm"},
+  {id:127,date:"2026-04-14",account:"@savondusavota",tweetUrl:"https://x.com/savondusavota/status/2043886975242121496",content:"マエガミキーパー インスタントウィン 4/25まで毎日",deadline:"2026-04-25",status:"応募済","resultType":"instant","resultUrl":"https://savota-x-2nd.neo-atatter.com/drawing_status/result/1","resultChecked":true},
+  {id:128,date:"2026-04-14",account:"@calbee_PR",tweetUrl:"https://x.com/calbee_PR/status/2043887024684577023",content:"フルグラボールいちごみるく味&いちごみるくセット 100名 4/15 11:59まで",deadline:"2026-04-15",status:"応募済","resultType":"dm"},
+  {id:129,date:"2026-04-14",account:"@sports_bstbs",tweetUrl:"https://x.com/sports_bstbs/status/2043887776421318871",content:"スターズオンアイス 出場全選手直筆サイン入りプログラム 5名 本日締切",deadline:"2026-04-14",status:"応募済","resultType":"dm"},
+  {id:130,date:"2026-04-14",account:"@gottsuprice",tweetUrl:"https://x.com/gottsuprice/status/2043887553229795587",content:"GORIX 調光サングラス 1名 4/16まで",deadline:"2026-04-16",status:"応募済","resultType":"dm"},
+  {id:131,date:"2026-04-14",account:"@rapidmachi",tweetUrl:"https://x.com/rapidmachi/status/2043886964806476244",content:"Amazonギフト5000円分 10名 4/25まで 個人アカ",deadline:"2026-04-25",status:"応募済","resultType":"dm"},
+  {id:132,date:"2026-04-14",account:"@MAGCOMI_",tweetUrl:"https://x.com/MAGCOMI_/status/2043886978933109119",content:"めっちゃ召喚された件 直筆サイン色紙 1名 5/1まで",deadline:"2026-05-01",status:"応募済","resultType":"dm"},
+  {id:133,date:"2026-04-14",account:"@realsound_tech",tweetUrl:"https://x.com/realsound_tech/status/2043886966819758276",content:"Amazonギフトカード5000円分 2名 5/6まで",deadline:"2026-05-06",status:"応募済","resultType":"dm"},
+  {id:134,date:"2026-04-14",account:"@DAITOGIKEN_JP",tweetUrl:"https://x.com/DAITOGIKEN_JP/status/2043886967704957169",content:"大都技研オフィシャルショップクーポン 4/15まで",deadline:"2026-04-15",status:"応募済","resultType":"dm"},
+  {id:135,date:"2026-04-14",account:"@ZOTAC_JAPAN",tweetUrl:"https://x.com/ZOTAC_JAPAN/status/2043889535864709324",content:"RTX 5070 SOLID バイオハザードレクイエムモデル 1名 4/15〜5/6",deadline:"2026-05-06",status:"応募済","resultType":"dm"},
+  {id:136,date:"2026-04-15",account:"@YBC_jp",tweetUrl:"https://x.com/YBC_jp/status/2044219227180282293",content:"チップスター50周年 毎日抽選3日目 計8本 4/16 9:59まで",deadline:"2026-04-16",status:"応募済","resultType":"dm"},
+  {id:137,date:"2026-04-15",account:"@munashi2022",tweetUrl:"https://x.com/munashi2022/status/2044234449932734789",content:"Amazonギフト3000円分+デジタルお食事券500円分 毎日応募 @munashi2022",deadline:"2026-04-27",status:"応募済","resultType":"instant"},
+  {id:138,date:"2026-04-15",account:"@calbee_PR",tweetUrl:"https://x.com/calbee_PR/status/2044219224340738242",content:"東京ディズニーシー フード&ワイン フェスティバルご招待 4/16まで",deadline:"2026-04-16",status:"応募済","resultType":"dm"},
+  {id:139,date:"2026-04-15",account:"@yamazakipan_cp",tweetUrl:"https://x.com/yamazakipan_cp/status/2044219153523834969",content:"東京ディズニーシー フード&ワイン フェスティバルご招待 第3回 5組10名 4/22まで",deadline:"2026-04-22",status:"応募済","resultType":"dm"},
+  {id:140,date:"2026-04-15",account:"@REBHPortal",tweetUrl:"https://x.com/REBHPortal/status/2044249354236567791",content:"Amazonギフト最大5万円分 バイオ30周年 17日目 4/16まで",deadline:"2026-04-16",status:"応募済","resultType":"dm"},
+  {id:141,date:"2026-04-15",account:"@CaramelCorn1971",tweetUrl:"https://x.com/CaramelCorn1971/status/2044249655085805938",content:"キャラメルコーン ソルティ2箱 毎日応募 4/16まで",deadline:"2026-04-16",status:"応募済","resultType":"instant"},
+  {id:142,date:"2026-04-15",account:"@tamago_himawari",tweetUrl:"https://x.com/tamago_himawari/status/2044189350934778237",content:"玉子焼とお出汁茶漬け天ぷら御膳(40名) 毎日応募 4/28まで",deadline:"2026-04-28",status:"応募済","resultType":"instant","resultChecked":true},
+  {id:143,date:"2026-04-15",account:"@cocomuu_atelier",tweetUrl:"https://x.com/cocomuu_atelier/status/2044068229338063269",content:"QUOカードPay最大10000円分(100名) 毎日応募 4/16まで",deadline:"2026-04-16",status:"応募済","resultType":"instant","resultChecked":true},
+  {id:144,date:"2026-04-15",account:"@nigirichojiro",tweetUrl:"https://x.com/nigirichojiro/status/2041305050048516150",content:"デジタルクーポン券(50名) 4/20まで",deadline:"2026-04-20",status:"応募済","resultType":"instant","resultChecked":true},
+  {id:145,date:"2026-04-15",account:"@mapple_editor",tweetUrl:"https://x.com/mapple_editor/status/2043527005195616451",content:"まっぷるマガジン(30名) GW旅先ルーレット 毎日応募 4/20まで",deadline:"2026-04-20",status:"応募済","resultType":"instant","resultChecked":true}
+];
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    const t = ['giveaway','history'][i];
+    b.classList.toggle('active', t === tab);
+  });
+  document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'history') renderHistory();
+}
+
+function renderHistory() {
+  const tbody = document.getElementById('historyBody');
+  const sorted = [...HISTORY].reverse();
+  tbody.innerHTML = sorted.map((h, i) => {
+    const status = h.status;
+    const isWon = status === '当選';
+    const isLost = status === '落選';
+    const isInstant = h.resultType === 'instant';
+    const rowClass = isWon ? 'won-row' : isLost ? 'lost-row' : isInstant ? 'instant-row' : '';
+    const statusBadge = isWon
+      ? '<span class="badge badge-won">🎉当選</span>'
+      : isLost
+        ? '<span class="badge badge-lost">落選</span>'
+        : isInstant
+          ? '<span class="badge badge-instant">⚡その場で</span>'
+          : '<span style="color:#71767b">応募済</span>';
+    const resultBtn = isInstant && h.resultUrl && !h.resultChecked
+      ? '<a class="btn btn-apply" href="' + h.resultUrl + '" target="_blank" rel="noopener">結果確認</a> '
+      : '';
+    const tweetBtn = h.tweetUrl
+      ? '<a class="btn btn-detail" href="' + h.tweetUrl + '" target="_blank" rel="noopener">ツイート</a>'
+      : '';
+    const deadline = h.deadline ? h.deadline.replace(/^2026-/, '').replace(/-/, '/') : '-';
+    return '<tr class="' + rowClass + '">' +
+      '<td>' + (sorted.length - i) + '</td>' +
+      '<td style="white-space:nowrap">' + h.date.replace(/^2026-/, '') + '</td>' +
+      '<td><span style="color:#1d9bf0;font-weight:600">' + h.account + '</span><br><span style="color:#71767b;font-size:0.8rem">' + h.content + '</span></td>' +
+      '<td style="white-space:nowrap">' + deadline + '</td>' +
+      '<td>' + statusBadge + '</td>' +
+      '<td>' + resultBtn + tweetBtn + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+function getDaysLeft(dateStr) {
+  // Handle fuzzy dates like "2026-04\u6708\u4E2D" or "2026-04-\u9803"
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    // Extract year-month, assume end of month
+    const m = dateStr.match(/(\d{4})-(\d{2})/);
+    if (m) {
+      const lastDay = new Date(parseInt(m[1]), parseInt(m[2]), 0).getDate();
+      dateStr = m[1] + '-' + m[2] + '-' + lastDay;
+    } else {
+      return 999;
+    }
+  }
+  const d = new Date(dateStr);
+  return Math.ceil((d - TODAY) / 86400000);
+}
+
+function deadlineClass(days) {
+  if (days < 0) return "deadline-expired";
+  if (days === 0) return "deadline-urgent";
+  if (days <= 2) return "deadline-soon";
+  return "deadline-ok";
+}
+
+function deadlineText(dateStr) {
+  const days = getDaysLeft(dateStr);
+  // For display, show the original date string if fuzzy
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const m = dateStr.match(/(\d{4})-(\d{2})/);
+    if (m) {
+      return parseInt(m[2]) + "\u6708\u4E2D (\u3042\u3068" + days + "\u65E5)";
+    }
+    return dateStr;
+  }
+  const d = new Date(dateStr);
+  const mo = d.getMonth() + 1;
+  const dd = d.getDate();
+  if (days < 0) return mo + "/" + dd + " (\u671F\u9650\u5207\u308C)";
+  if (days === 0) return mo + "/" + dd + " (\u672C\u65E5)";
+  return mo + "/" + dd + " (\u3042\u3068" + days + "\u65E5)";
+}
+
+function methodBadges(m) {
+  const parts = m.split("+");
+  return parts.map(p => {
+    if (p === "rt") return '<span class="badge badge-rt">F&RT</span>';
+    if (p === "reply") return '<span class="badge badge-reply">\u30EA\u30D7\u30E9\u30A4</span>';
+    if (p === "quote") return '<span class="badge badge-quote">\u5F15\u7528</span>';
+    if (p === "like") return '<span class="badge badge-like">\u3044\u3044\u306D</span>';
+    if (p === "daily") return '<span class="badge badge-daily">\u6BCE\u65E5</span>';
+    return '<span class="badge">' + p + '</span>';
+  }).join(" ");
+}
+
+function isApplied(url) {
+  return APPLIED_URLS.some(u => url.includes(u) || u.includes(url));
+}
+
+function renderStats() {
+  const total = GIVEAWAYS.length;
+  const applied = GIVEAWAYS.filter(g => isApplied(g.applyUrl)).length;
+  const todayCount = GIVEAWAYS.filter(g => getDaysLeft(g.deadline) === 0).length;
+  const urgent = GIVEAWAYS.filter(g => { const d = getDaysLeft(g.deadline); return d >= 0 && d <= 2; }).length;
+  const active = GIVEAWAYS.filter(g => getDaysLeft(g.deadline) >= 0).length;
+  document.getElementById("stats").innerHTML =
+    '<div class="stat-card"><div class="num">' + total + '</div><div class="label">\u5408\u8A08</div></div>' +
+    '<div class="stat-card"><div class="num" style="color:#00ba7c">' + active + '</div><div class="label">\u53D7\u4ED8\u4E2D</div></div>' +
+    '<div class="stat-card"><div class="num">' + applied + '</div><div class="label">\u5FDC\u52DF\u6E08</div></div>' +
+    '<div class="stat-card"><div class="num" style="color:#f4212e">' + todayCount + '</div><div class="label">\u672C\u65E5\u7DE0\u5207</div></div>' +
+    '<div class="stat-card"><div class="num" style="color:#ffd400">' + urgent + '</div><div class="label">\u7DCA\u6025(2\u65E5\u4EE5\u5185)</div></div>';
+}
+
+let sortCol = 3, sortAsc = true;
+
+function renderTable() {
+  const search = document.getElementById("searchInput").value.toLowerCase();
+  const statusF = document.getElementById("statusFilter").value;
+  const methodF = document.getElementById("methodFilter").value;
+  const sourceF = document.getElementById("sourceFilter").value;
+
+  let data = GIVEAWAYS.map((g, i) => ({...g, idx: i}));
+
+  data = data.filter(g => {
+    const days = getDaysLeft(g.deadline);
+    const applied = isApplied(g.applyUrl);
+    if (statusF === "open" && (applied || days < 0)) return false;
+    if (statusF === "applied" && !applied) return false;
+    if (statusF === "expired" && days >= 0) return false;
+    if (methodF === "rt" && !g.method.includes("rt")) return false;
+    if (methodF === "reply" && !g.method.includes("reply")) return false;
+    if (methodF === "quote" && !g.method.includes("quote")) return false;
+    if (sourceF !== "all" && g.source !== sourceF) return false;
+    if (search && !(g.name + g.provider + g.winners + g.source).toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  data.sort((a, b) => {
+    let va, vb;
+    if (sortCol === 0) { va = a.idx; vb = b.idx; }
+    else if (sortCol === 1) { va = a.name; vb = b.name; }
+    else if (sortCol === 2) { va = parseInt(a.winners.replace(/,/g,'')) || 0; vb = parseInt(b.winners.replace(/,/g,'')) || 0; }
+    else if (sortCol === 3) { va = a.deadline; vb = b.deadline; }
+    else if (sortCol === 4) { va = a.method; vb = b.method; }
+    else { va = a.idx; vb = b.idx; }
+    if (va < vb) return sortAsc ? -1 : 1;
+    if (va > vb) return sortAsc ? 1 : -1;
+    return 0;
+  });
+
+  const tbody = document.getElementById("tableBody");
+  if (data.length === 0) {
+    tbody.innerHTML = "";
+    document.getElementById("noResults").style.display = "block";
+    return;
+  }
+  document.getElementById("noResults").style.display = "none";
+
+  tbody.innerHTML = data.map((g, i) => {
+    const days = getDaysLeft(g.deadline);
+    const applied = isApplied(g.applyUrl);
+    const rowClass = applied ? "applied" : "";
+    const dlClass = deadlineClass(days);
+    const statusHtml = applied
+      ? '<span style="color:#71767b">\u5FDC\u52DF\u6E08</span>'
+      : (days < 0 ? '<span style="color:#71767b">\u671F\u9650\u5207\u308C</span>' : '<span style="color:#00ba7c">\u672A\u5FDC\u52DF</span>');
+    const actionHtml = applied
+      ? '<a class="btn btn-done">\u6E08</a>'
+      : (days < 0
+        ? '<span style="color:#71767b">-</span>'
+        : (g.applyUrl
+          ? '<a class="btn btn-apply" href="' + g.applyUrl + '" target="_blank" rel="noopener">\u5FDC\u52DF\u3059\u308B</a>'
+          : '<span style="color:#71767b">-</span>'));
+    const detailHtml = g.detailUrl
+      ? ' <a class="btn btn-detail" href="' + g.detailUrl + '" target="_blank" rel="noopener">\u8A73\u7D30</a>'
+      : '';
+
+    return '<tr class="' + rowClass + '">' +
+      '<td>' + (i + 1) + '</td>' +
+      '<td><span class="prize-name">' + g.name + '</span><span class="provider">' + g.provider + '</span></td>' +
+      '<td class="winners">' + g.winners + '</td>' +
+      '<td class="' + dlClass + '">' + deadlineText(g.deadline) + '</td>' +
+      '<td class="hide-mobile">' + methodBadges(g.method) + '</td>' +
+      '<td class="hide-mobile"><span class="source-tag">' + g.source + '</span></td>' +
+      '<td>' + statusHtml + '</td>' +
+      '<td>' + actionHtml + detailHtml + '</td>' +
+      '</tr>';
+  }).join("");
+}
+
+function filterTable() { renderTable(); }
+
+function resetFilters() {
+  document.getElementById("searchInput").value = "";
+  document.getElementById("statusFilter").value = "all";
+  document.getElementById("methodFilter").value = "all";
+  document.getElementById("sourceFilter").value = "all";
+  renderTable();
+}
+
+function sortTable(col) {
+  if (sortCol === col) sortAsc = !sortAsc;
+  else { sortCol = col; sortAsc = true; }
+  renderTable();
+}
+
+renderStats();
+renderTable();
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+.env
+node_modules/
+data/browser-profile/
+.playwright-mcp/
+# dist/
