@@ -8,6 +8,7 @@ const deep = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/survey-deep.j
 const history = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/history.json'), 'utf8'));
 
 function normalizeMethod(m) {
+  if (!m) return 'rt';
   const lower = m.toLowerCase();
   if (lower.includes('引用')) return 'quote';
   if (lower.includes('リプライ') || lower.includes('リプ')) return 'rt+reply';
@@ -15,6 +16,13 @@ function normalizeMethod(m) {
   if (lower.includes('アンケート')) return 'rt+reply';
   if (lower.includes('ハッシュタグ')) return 'rt+reply';
   return 'rt';
+}
+
+function extractDeadline(note) {
+  if (!note) return '';
+  const m = note.match(/(\d{1,2})\/(\d{1,2})/);
+  if (m) return `2026-${String(m[1]).padStart(2,'0')}-${String(m[2]).padStart(2,'0')}`;
+  return '';
 }
 
 function buildApplyUrl(entry) {
@@ -101,20 +109,35 @@ const existing = [
   {name:"JTBトラベルギフト 5万円分",provider:"NHK出版",winners:"3名",deadline:"2026-04-21",method:"rt",applyUrl:"https://www.chance.com/jump.srv?id=707551",detailUrl:"https://www.chance.com/present/detail/707551/",source:"chanceit"},
 ];
 
-// ---- Merge & deduplicate ----
-const all = [...existing, ...converted];
+// ---- Convert history.json to GIVEAWAYS format (tweetUrl重複は最後エントリ優先) ----
+const historyByUrl = {};
+history.forEach(h => { if (h.tweetUrl) historyByUrl[h.tweetUrl] = h; });
+const historyConverted = Object.values(historyByUrl).map(h => ({
+  name: h.prize || h.action || (h.account ? h.account + 'キャンペーン' : ''),
+  provider: (h.account || '').replace('@', ''),
+  winners: '',
+  deadline: extractDeadline(h.note),
+  method: normalizeMethod(h.action),
+  applyUrl: h.tweetUrl || '',
+  detailUrl: h.tweetUrl || '',
+  source: 'history'
+}));
+
+// ---- Merge & deduplicate (by applyUrl, history優先: survey-deep/existingより詳細情報を持つ) ----
+// 先にhistoryConvertedを入れることで、survey-deepの同一URLエントリを上書き
+const all = [...historyConverted, ...existing, ...converted];
 const seen = new Set();
 const merged = [];
 for (const item of all) {
-  const key = item.name;
+  const key = item.applyUrl || item.name;
   if (!seen.has(key)) {
     seen.add(key);
     merged.push(item);
   }
 }
-merged.sort((a, b) => a.deadline.localeCompare(b.deadline));
+merged.sort((a, b) => (a.deadline || '9999').localeCompare(b.deadline || '9999'));
 
-console.log(`Existing: ${existing.length}, Survey-deep: ${converted.length}, Merged: ${merged.length}`);
+console.log(`Existing: ${existing.length}, Survey-deep: ${converted.length}, History: ${historyConverted.length}, Merged: ${merged.length}`);
 
 // ---- Generate JS array literal ----
 function esc(s) { return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/'/g, "\\'"); }
@@ -128,7 +151,7 @@ const historyEntries = history.map(h => {
   const r = h.resultType ? `,"resultType":"${esc(h.resultType)}"` : '';
   const ru = h.resultUrl ? `,"resultUrl":"${esc(h.resultUrl)}"` : '';
   const rc = h.resultChecked ? `,"resultChecked":true` : '';
-  return `  {id:${h.id},date:"${h.date}",account:"${esc(h.account)}",tweetUrl:"${esc(h.tweetUrl)}",content:"${esc(h.content)}",deadline:"${h.deadline}",status:"${esc(h.status)}"${r}${ru}${rc}}`;
+  return `  {id:"${esc(String(h.id))}",date:"${esc(h.appliedAt||h.date||'')}",account:"${esc(h.account||'')}",tweetUrl:"${esc(h.tweetUrl||'')}",content:"${esc(h.prize||h.content||'')}",deadline:"${esc(h.note||h.deadline||'')}",status:"${esc(h.status||'')}"${r}${ru}${rc}}`;
 }).join(',\n');
 
 // Applied tweet URLs from history
