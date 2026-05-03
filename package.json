@@ -1,6 +1,6 @@
 {
   "name": "obs-vision",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "ポケモンユナイト構成分析オーバーレイ",
   "main": "main.js",
   "scripts": {

@@ -39,6 +39,17 @@
     "icon": "images/t_Square_Armarouge.png",
     "jungle": true
   },
+  "フリーザー": {
+    "en": "Articuno",
+    "role": "ディフェンダー",
+    "range": "遠距離",
+    "cc": [
+      "凍り",
+      "スロー"
+    ],
+    "icon": "images/t_Square_Articuno.png",
+    "jungle": false
+  },
   "マリルリ": {
     "en": "Azumarill",
     "role": "バランス",
@@ -608,6 +619,16 @@
     "icon": "images/t_Square_Miraidon.png",
     "jungle": false
   },
+  "ファイヤー": {
+    "en": "Moltres",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Moltres.png",
+    "jungle": false
+  },
   "バリヤード": {
     "en": "Mr.Mime",
     "role": "サポート",
@@ -805,6 +826,17 @@
     "icon": "images/t_Square_Tsareena.png",
     "jungle": false
   },
+  "バクフーン": {
+    "en": "Typhlosion",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "スタン",
+      "ノックバック"
+    ],
+    "icon": "images/t_Square_Typhlosion.png",
+    "jungle": false
+  },
   "バンギラス": {
     "en": "Tyranitar",
     "role": "バランス",
@@ -877,6 +909,16 @@
     "icon": "images/t_Square_Zacian.png",
     "jungle": false
   },
+  "サンダー": {
+    "en": "Zapdos",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "スタン"
+    ],
+    "icon": "images/t_Square_Zapdos.png",
+    "jungle": false
+  },
   "ゼラオラ": {
     "en": "Zeraora",
     "role": "スピーダー",
@@ -896,41 +938,5 @@
     ],
     "icon": "images/t_Square_Zoroark.png",
     "jungle": true
-  },
-  "サンダー": {
-    "en": "Zapdos",
-    "role": "アタッカー",
-    "range": "遠距離",
-    "cc": [
-      "スタン"
-    ],
-    "icon": "images/t_Square_Zapdos.png",
-    "jungle": false
-  },
-  "ファイヤー": {
-    "en": "Moltres",
-    "role": "バランス",
-    "range": "近接",
-    "cc": [
-      "スロー"
-    ],
-    "icon": "images/t_Square_Moltres.png",
-    "jungle": false
-  },
-  "フリーザー": {
-    "en": "Articuno",
-    "role": "ディフェンダー",
-    "range": "遠距離",
-    "cc": [],
-    "icon": "images/t_Square_Articuno.png",
-    "jungle": false
-  },
-  "バクフーン": {
-    "en": "Typhlosion",
-    "role": "アタッカー",
-    "range": "遠距離",
-    "cc": [],
-    "icon": "images/t_Square_Typhlosion.png",
-    "jungle": false
   }
 }
