@@ -34,6 +34,7 @@ const express = require('express');
 const OBSWebSocket = require('obs-websocket-js').default;
 
 const POKEMON_DB = JSON.parse(fs.readFileSync(path.join(__dirname, 'pokemon-db.json'), 'utf-8'));
+const APP_VERSION = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf-8')).version;
 const PORT = process.env.PORT || 38921;
 const SOURCE_NAME = 'obs-vision overlay';
 const TEMPLATE_SIZE = 48;
@@ -99,7 +100,7 @@ function createCircleIcon(r, g, b) {
 }
 const ICON = { gray: createCircleIcon(150,150,150), yellow: createCircleIcon(230,180,40), green: createCircleIcon(50,200,80), red: createCircleIcon(220,60,60) };
 
-function setTrayStatus(s, t) { if (tray) { tray.setImage(ICON[s]||ICON.gray); tray.setToolTip(`obs-vision\n${t}`); } }
+function setTrayStatus(s, t) { if (tray) { tray.setImage(ICON[s]||ICON.gray); tray.setToolTip(`obs-vision v${APP_VERSION}\n${t}`); } }
 function broadcast(data) {
   const p = `data: ${JSON.stringify(data)}\n\n`;
   for (let i = clients.length - 1; i >= 0; i--) {
@@ -611,7 +612,10 @@ app.whenReady().then(() => {
   }
 
   const buildMenu = () => {
+    const { shell } = require('electron');
     const items = [
+      { label: `obs-vision v${APP_VERSION}`, click: () => shell.openExternal('https://github.com/harisen/unite-pick-vision/releases') },
+      { type: 'separator' },
       { label: obsConnected ? '● 動作中' : '○ 未接続', enabled: false },
       { type: 'separator' },
       { label: testMode ? '■ テスト停止' : '▶ テスト動画で検証', click: () => testMode ? stopTestMode() : startTestMode() },
