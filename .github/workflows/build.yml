@@ -1,0 +1,80 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v1.1.0)'
+        required: true
+
+# defaults removed (obs-vision is now repo root)
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win32
+            arch: x64
+            ext: win64
+          - os: macos-latest
+            platform: darwin
+            arch: x64
+            ext: mac-x64
+          - os: macos-latest
+            platform: darwin
+            arch: arm64
+            ext: mac-arm64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install
+
+      - name: Build
+        shell: bash
+        run: npx electron-packager . "Unite Pick Vision" --platform=${{ matrix.platform }} --arch=${{ matrix.arch }} --out=dist "--ignore=^/debug$|^/dist|^/\.env$|^/\.git|^/\.github" --extra-resource=.env.example
+
+      - name: Zip (Windows)
+        if: matrix.platform == 'win32'
+        shell: pwsh
+        run: Compress-Archive -Path "dist/Unite Pick Vision-${{ matrix.platform }}-${{ matrix.arch }}" -DestinationPath "dist/unite-pick-vision-${{ matrix.ext }}.zip"
+
+      - name: Zip (macOS)
+        if: matrix.platform == 'darwin'
+        run: cd dist && zip -r "unite-pick-vision-${{ matrix.ext }}.zip" "Unite Pick Vision-${{ matrix.platform }}-${{ matrix.arch }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unite-pick-vision-${{ matrix.ext }}
+          path: dist/unite-pick-vision-${{ matrix.ext }}.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          files: artifacts/**/*.zip
+          generate_release_notes: true

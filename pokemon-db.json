@@ -1,0 +1,936 @@
+{
+  "アブソル": {
+    "en": "Absol",
+    "role": "スピーダー",
+    "range": "近接",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Absol.png",
+    "jungle": true
+  },
+  "ギルガルド": {
+    "en": "Aegislash",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スタン"
+    ],
+    "icon": "images/t_Square_Aegislash.png",
+    "jungle": false
+  },
+  "マホイップ": {
+    "en": "Alcremie",
+    "role": "サポート",
+    "range": "遠距離",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Alcremie.png",
+    "jungle": false
+  },
+  "グレンアルマ": {
+    "en": "Armarouge",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Armarouge.png",
+    "jungle": true
+  },
+  "マリルリ": {
+    "en": "Azumarill",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スタン"
+    ],
+    "icon": "images/t_Square_Azumarill.png",
+    "jungle": true
+  },
+  "カメックス": {
+    "en": "Blastoise",
+    "role": "ディフェンダー",
+    "range": "遠距離",
+    "cc": [
+      "スロー",
+      "ノックバック"
+    ],
+    "icon": "images/t_Square_Blastoise.png",
+    "jungle": false
+  },
+  "バシャーモ": {
+    "en": "Blaziken",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スタン"
+    ],
+    "icon": "images/t_Square_Blaziken.png",
+    "jungle": true
+  },
+  "ハピナス": {
+    "en": "Blissey",
+    "role": "サポート",
+    "range": "近接",
+    "cc": [
+      "スタン"
+    ],
+    "icon": "images/t_Square_Blissey.png",
+    "jungle": false
+  },
+  "マッシブーン": {
+    "en": "Buzzwole",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スタン"
+    ],
+    "icon": "images/t_Square_Buzzwole.png",
+    "jungle": false
+  },
+  "ソウブレイズ": {
+    "en": "Ceruledge",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Ceruledge.png",
+    "jungle": false
+  },
+  "シャンデラ": {
+    "en": "Chandelure",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "スロー",
+      "拘束"
+    ],
+    "icon": "images/t_Square_Chandelure.png",
+    "jungle": false
+  },
+  "リザードン": {
+    "en": "Charizard",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "ノックバック"
+    ],
+    "icon": "images/t_Square_Charizard.png",
+    "jungle": false
+  },
+  "メガリザードンX": {
+    "en": "Mega-Charizard-X",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "ノックバック"
+    ],
+    "icon": "images/t_Square_MegaCharizardX.png",
+    "jungle": false
+  },
+  "メガリザードンY": {
+    "en": "Mega-Charizard-Y",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "ノックバック"
+    ],
+    "icon": "images/t_Square_MegaCharizardY.png",
+    "jungle": false
+  },
+  "エースバーン": {
+    "en": "Cinderace",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "ノックバック"
+    ],
+    "icon": "images/t_Square_Cinderace.png",
+    "jungle": true
+  },
+  "ピクシー": {
+    "en": "Clefable",
+    "role": "サポート",
+    "range": "近接",
+    "cc": [
+      "スタン",
+      "スロー"
+    ],
+    "icon": "images/t_Square_Clefable.png",
+    "jungle": false
+  },
+  "キュワワー": {
+    "en": "Comfey",
+    "role": "サポート",
+    "range": "遠距離",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Comfey.png",
+    "jungle": false
+  },
+  "ウッウ": {
+    "en": "Cramorant",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "スタン"
+    ],
+    "icon": "images/t_Square_Cramorant.png",
+    "jungle": false
+  },
+  "イワパレス": {
+    "en": "Crustle",
+    "role": "ディフェンダー",
+    "range": "近接",
+    "cc": [
+      "スタン",
+      "ノックバック"
+    ],
+    "icon": "images/t_Square_Crustle.png",
+    "jungle": false
+  },
+  "ダークライ": {
+    "en": "Darkrai",
+    "role": "スピーダー",
+    "range": "近接",
+    "cc": [
+      "眠り",
+      "スロー"
+    ],
+    "icon": "images/t_Square_Darkrai.png",
+    "jungle": true
+  },
+  "ジュナイパー": {
+    "en": "Decidueye",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "スロー",
+      "拘束"
+    ],
+    "icon": "images/t_Square_Decidueye.png",
+    "jungle": true
+  },
+  "マフォクシー": {
+    "en": "Delphox",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "ノックバック",
+      "拘束"
+    ],
+    "icon": "images/t_Square_Delphox.png",
+    "jungle": true
+  },
+  "ダダリン": {
+    "en": "Dhelmise",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Dhelmise.png",
+    "jungle": false
+  },
+  "ドードリオ": {
+    "en": "Dodrio",
+    "role": "スピーダー",
+    "range": "近接",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Dodrio.png",
+    "jungle": true
+  },
+  "ドラパルト": {
+    "en": "Dragapult",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Dragapult.png",
+    "jungle": true
+  },
+  "カイリュー": {
+    "en": "Dragonite",
+    "role": "バランス",
+    "range": "遠距離",
+    "cc": [
+      "ノックバック",
+      "スロー"
+    ],
+    "icon": "images/t_Square_Dragonite.png",
+    "jungle": false
+  },
+  "ジュラルドン": {
+    "en": "Duraludon",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Duraludon.png",
+    "jungle": false
+  },
+  "ワタシラガ": {
+    "en": "Eldegoss",
+    "role": "サポート",
+    "range": "遠距離",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Eldegoss.png",
+    "jungle": false
+  },
+  "エンペルト": {
+    "en": "Empoleon",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スロー",
+      "ノックバック"
+    ],
+    "icon": "images/t_Square_Empoleon.png",
+    "jungle": false
+  },
+  "エーフィ": {
+    "en": "Espeon",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "スタン"
+    ],
+    "icon": "images/t_Square_Espeon.png",
+    "jungle": true
+  },
+  "タイレーツ": {
+    "en": "Falinks",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スタン"
+    ],
+    "icon": "images/t_Square_Falinks.png",
+    "jungle": true
+  },
+  "ガブリアス": {
+    "en": "Garchomp",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スロー",
+      "ノックバック"
+    ],
+    "icon": "images/t_Square_Garchomp.png",
+    "jungle": false
+  },
+  "サーナイト": {
+    "en": "Gardevoir",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Gardevoir.png",
+    "jungle": false
+  },
+  "ゲンガー": {
+    "en": "Gengar",
+    "role": "スピーダー",
+    "range": "近接",
+    "cc": [
+      "スロー",
+      "眠り"
+    ],
+    "icon": "images/t_Square_Gengar.png",
+    "jungle": true
+  },
+  "グレイシア": {
+    "en": "Glaceon",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "凍り",
+      "スロー"
+    ],
+    "icon": "images/t_Square_Glaceon.png",
+    "jungle": true
+  },
+  "ヌメルゴン": {
+    "en": "Goodra",
+    "role": "ディフェンダー",
+    "range": "近接",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Goodra.png",
+    "jungle": false
+  },
+  "ヨクバリス": {
+    "en": "Greedent",
+    "role": "ディフェンダー",
+    "range": "近接",
+    "cc": [
+      "スタン"
+    ],
+    "icon": "images/t_Square_Greedent.png",
+    "jungle": false
+  },
+  "ゲッコウガ": {
+    "en": "Greninja",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "ノックバック"
+    ],
+    "icon": "images/t_Square_Greninja.png",
+    "jungle": true
+  },
+  "ギャラドス": {
+    "en": "Gyarados",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スタン",
+      "ノックバック"
+    ],
+    "icon": "images/t_Square_Gyarados.png",
+    "jungle": false
+  },
+  "メガギャラドス": {
+    "en": "Mega-Gyarados",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スタン",
+      "ノックバック"
+    ],
+    "icon": "images/t_Square_MegaGyarados.png",
+    "jungle": false
+  },
+  "ホウオウ": {
+    "en": "Ho-Oh",
+    "role": "ディフェンダー",
+    "range": "遠距離",
+    "cc": [
+      "スタン"
+    ],
+    "icon": "images/t_Square_HoOh.png",
+    "jungle": false
+  },
+  "フーパ": {
+    "en": "Hoopa",
+    "role": "サポート",
+    "range": "遠距離",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Hoopa.png",
+    "jungle": false
+  },
+  "インテレオン": {
+    "en": "Inteleon",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Inteleon.png",
+    "jungle": false
+  },
+  "ラプラス": {
+    "en": "Lapras",
+    "role": "ディフェンダー",
+    "range": "遠距離",
+    "cc": [
+      "凍り",
+      "スロー"
+    ],
+    "icon": "images/t_Square_Lapras.png",
+    "jungle": false
+  },
+  "ラティアス": {
+    "en": "Latias",
+    "role": "サポート",
+    "range": "遠距離",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Latias.png",
+    "jungle": false
+  },
+  "ラティオス": {
+    "en": "Latios",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Latios.png",
+    "jungle": false
+  },
+  "リーフィア": {
+    "en": "Leafeon",
+    "role": "スピーダー",
+    "range": "近接",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Leafeon.png",
+    "jungle": true
+  },
+  "ルカリオ": {
+    "en": "Lucario",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "ノックバック",
+      "スタン"
+    ],
+    "icon": "images/t_Square_Lucario.png",
+    "jungle": false
+  },
+  "メガルカリオ": {
+    "en": "Mega-Lucario",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "ノックバック",
+      "スタン"
+    ],
+    "icon": "images/t_Square_MegaLucario.png",
+    "jungle": false
+  },
+  "カイリキー": {
+    "en": "Machamp",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スタン"
+    ],
+    "icon": "images/t_Square_Machamp.png",
+    "jungle": false
+  },
+  "マンムー": {
+    "en": "Mamoswine",
+    "role": "ディフェンダー",
+    "range": "近接",
+    "cc": [
+      "スタン",
+      "スロー"
+    ],
+    "icon": "images/t_Square_Mamoswine.png",
+    "jungle": false
+  },
+  "マスカーニャ": {
+    "en": "Meowscarada",
+    "role": "スピーダー",
+    "range": "近接",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Meowscara.png",
+    "jungle": true
+  },
+  "ニャース": {
+    "en": "Meowth",
+    "role": "スピーダー",
+    "range": "近接",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Meowth.png",
+    "jungle": true
+  },
+  "メタグロス": {
+    "en": "Metagross",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スタン"
+    ],
+    "icon": "images/t_Square_Metagross.png",
+    "jungle": false
+  },
+  "ミュウ": {
+    "en": "Mew",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Mew.png",
+    "jungle": false
+  },
+  "メガミュウツーX": {
+    "en": "MewtwoX",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スタン"
+    ],
+    "icon": "images/t_Square_MewtwoX.png",
+    "jungle": false
+  },
+  "メガミュウツーY": {
+    "en": "MewtwoY",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_MewtwoY.png",
+    "jungle": false
+  },
+  "ミミッキュ": {
+    "en": "Mimikyu",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スタン"
+    ],
+    "icon": "images/t_Square_Mimikyu.png",
+    "jungle": false
+  },
+  "ミライドン": {
+    "en": "Miraidon",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "スタン",
+      "スロー"
+    ],
+    "icon": "images/t_Square_Miraidon.png",
+    "jungle": false
+  },
+  "バリヤード": {
+    "en": "Mr.Mime",
+    "role": "サポート",
+    "range": "近接",
+    "cc": [
+      "スタン",
+      "拘束"
+    ],
+    "icon": "images/t_Square_MrMime.png",
+    "jungle": false
+  },
+  "アローラキュウコン": {
+    "en": "Ninetales",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "凍り",
+      "スロー"
+    ],
+    "icon": "images/t_Square_Ninetales.png",
+    "jungle": false
+  },
+  "パーモット": {
+    "en": "Pawmot",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スタン"
+    ],
+    "icon": "images/t_Square_Pawmot.png",
+    "jungle": false
+  },
+  "ピカチュウ": {
+    "en": "Pikachu",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "スタン"
+    ],
+    "icon": "images/t_Square_Pikachu.png",
+    "jungle": false
+  },
+  "コダック": {
+    "en": "Psyduck",
+    "role": "サポート",
+    "range": "遠距離",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Psyduck.png",
+    "jungle": false
+  },
+  "アローラライチュウ": {
+    "en": "Raichu",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_AlolanRaichu.png",
+    "jungle": false
+  },
+  "ガラルギャロップ": {
+    "en": "Rapidash",
+    "role": "スピーダー",
+    "range": "遠距離",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_GalarianRapidash.png",
+    "jungle": true
+  },
+  "ヤミラミ": {
+    "en": "Sableye",
+    "role": "サポート",
+    "range": "近接",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Sableye.png",
+    "jungle": false
+  },
+  "ハッサム": {
+    "en": "Scizor",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Scizor.png",
+    "jungle": false
+  },
+  "ストライク": {
+    "en": "Scyther",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Scyther.png",
+    "jungle": false
+  },
+  "ネギガナイト": {
+    "en": "Sirfetchd",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スタン"
+    ],
+    "icon": "images/t_Square_Sirfetchd.png",
+    "jungle": false
+  },
+  "ヤドラン": {
+    "en": "Slowbro",
+    "role": "ディフェンダー",
+    "range": "遠距離",
+    "cc": [
+      "スタン",
+      "拘束"
+    ],
+    "icon": "images/t_Square_Slowbro.png",
+    "jungle": false
+  },
+  "カビゴン": {
+    "en": "Snorlax",
+    "role": "ディフェンダー",
+    "range": "近接",
+    "cc": [
+      "ノックバック",
+      "スタン"
+    ],
+    "icon": "images/t_Square_Snorlax.png",
+    "jungle": false
+  },
+  "スイクン": {
+    "en": "Suicune",
+    "role": "バランス",
+    "range": "遠距離",
+    "cc": [
+      "凍り",
+      "ノックバック"
+    ],
+    "icon": "images/t_Square_Suicune.png",
+    "jungle": false
+  },
+  "ニンフィア": {
+    "en": "Sylveon",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Sylveon.png",
+    "jungle": true
+  },
+  "ファイアロー": {
+    "en": "Talonflame",
+    "role": "スピーダー",
+    "range": "近接",
+    "cc": [
+      "ノックバック"
+    ],
+    "icon": "images/t_Square_Talonflame.png",
+    "jungle": true
+  },
+  "デカヌチャン": {
+    "en": "Tinkaton",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "ノックバック",
+      "スタン"
+    ],
+    "icon": "images/t_Square_Tinkaton.png",
+    "jungle": false
+  },
+  "オーロット": {
+    "en": "Trevenant",
+    "role": "ディフェンダー",
+    "range": "近接",
+    "cc": [
+      "スタン",
+      "スロー"
+    ],
+    "icon": "images/t_Square_Trevenant.png",
+    "jungle": false
+  },
+  "アマージョ": {
+    "en": "Tsareena",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スタン"
+    ],
+    "icon": "images/t_Square_Tsareena.png",
+    "jungle": false
+  },
+  "バンギラス": {
+    "en": "Tyranitar",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スタン",
+      "スロー"
+    ],
+    "icon": "images/t_Square_Tyranitar.png",
+    "jungle": false
+  },
+  "ブラッキー": {
+    "en": "Umbreon",
+    "role": "ディフェンダー",
+    "range": "近接",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Umbreon.png",
+    "jungle": false
+  },
+  "ウーラオス": {
+    "en": "Urshifu",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スタン"
+    ],
+    "icon": "images/t_Square_Urshifu_Single.png",
+    "jungle": true
+  },
+  "シャワーズ": {
+    "en": "Vaporeon",
+    "role": "ディフェンダー",
+    "range": "遠距離",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Vaporeon.png",
+    "jungle": false
+  },
+  "フシギバナ": {
+    "en": "Venusaur",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Venusaur.png",
+    "jungle": false
+  },
+  "プクリン": {
+    "en": "Wigglytuff",
+    "role": "サポート",
+    "range": "近接",
+    "cc": [
+      "眠り",
+      "スタン"
+    ],
+    "icon": "images/t_Square_Wigglytuff.png",
+    "jungle": false
+  },
+  "ザシアン": {
+    "en": "Zacian",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "ノックバック"
+    ],
+    "icon": "images/t_Square_Zacian.png",
+    "jungle": false
+  },
+  "ゼラオラ": {
+    "en": "Zeraora",
+    "role": "スピーダー",
+    "range": "近接",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Zeraora.png",
+    "jungle": true
+  },
+  "ゾロアーク": {
+    "en": "Zoroark",
+    "role": "スピーダー",
+    "range": "近接",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Zoroark.png",
+    "jungle": true
+  },
+  "サンダー": {
+    "en": "Zapdos",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [
+      "スタン"
+    ],
+    "icon": "images/t_Square_Zapdos.png",
+    "jungle": false
+  },
+  "ファイヤー": {
+    "en": "Moltres",
+    "role": "バランス",
+    "range": "近接",
+    "cc": [
+      "スロー"
+    ],
+    "icon": "images/t_Square_Moltres.png",
+    "jungle": false
+  },
+  "フリーザー": {
+    "en": "Articuno",
+    "role": "ディフェンダー",
+    "range": "遠距離",
+    "cc": [],
+    "icon": "images/t_Square_Articuno.png",
+    "jungle": false
+  },
+  "バクフーン": {
+    "en": "Typhlosion",
+    "role": "アタッカー",
+    "range": "遠距離",
+    "cc": [],
+    "icon": "images/t_Square_Typhlosion.png",
+    "jungle": false
+  }
+}

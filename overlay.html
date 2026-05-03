@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: transparent;
+      width: 100vw;
+      height: 100vh;
+      font-family: 'Segoe UI', 'Hiragino Sans', sans-serif;
+      overflow: hidden;
+    }
+
+    /* =============================================
+       最終準備中：上部横並び大表示
+    ============================================= */
+    #top-bar {
+      position: absolute;
+      top: 7%;
+      left: 1.5%;
+      right: 1.5%;
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(-16px);
+      pointer-events: none;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    #top-bar.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .lane-group {
+      display: flex;
+      gap: 8px;
+      background: rgba(0,0,0,0.25);
+      border-radius: 14px;
+      padding: 8px;
+      flex: 2;
+    }
+    .lane-group.lane-center { flex: 1; }
+    .lane-group-label {
+      position: absolute;
+      bottom: -26px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      background: rgba(0,0,0,0.25);
+      padding: 3px 14px;
+      border-radius: 0 0 8px 8px;
+      white-space: nowrap;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+    }
+
+    .top-card {
+      flex: 1;
+      border-radius: 12px;
+      padding: 14px 10px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    .top-card.role-attacker {
+      background: linear-gradient(180deg, rgba(220,60,50,0.90) 0%, rgba(160,30,30,0.85) 100%);
+      border: 2px solid rgba(255,120,100,0.6);
+    }
+    .top-card.role-defender {
+      background: linear-gradient(180deg, rgba(50,170,80,0.90) 0%, rgba(30,120,50,0.85) 100%);
+      border: 2px solid rgba(100,220,130,0.6);
+    }
+    .top-card.role-speedster {
+      background: linear-gradient(180deg, rgba(50,120,220,0.90) 0%, rgba(30,70,160,0.85) 100%);
+      border: 2px solid rgba(100,160,255,0.6);
+    }
+    .top-card.role-allrounder {
+      background: linear-gradient(180deg, rgba(140,60,200,0.90) 0%, rgba(90,30,150,0.85) 100%);
+      border: 2px solid rgba(180,120,255,0.6);
+    }
+    .top-card.role-supporter {
+      background: linear-gradient(180deg, rgba(220,190,40,0.90) 0%, rgba(170,140,20,0.85) 100%);
+      border: 2px solid rgba(255,230,100,0.6);
+    }
+
+    .top-card img {
+      width: 96px;
+      height: 96px;
+      object-fit: contain;
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5));
+      border-radius: 8px;
+      background: rgba(255,255,255,0.15);
+      padding: 2px;
+    }
+    .top-card .no-icon {
+      width: 96px; height: 96px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 48px;
+    }
+    .top-card .card-lane {
+      font-size: 11px; font-weight: 700;
+      color: rgba(255,255,255,0.9);
+      background: rgba(0,0,0,0.3);
+      padding: 2px 10px; border-radius: 4px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+    .top-card .card-name {
+      font-size: 18px; font-weight: 700; color: #fff;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+      text-align: center; line-height: 1.2;
+    }
+    .top-card .card-role {
+      font-size: 12px; font-weight: 700; color: #fff;
+      border-radius: 5px; padding: 3px 10px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+    .top-card .card-cc {
+      display: flex; flex-wrap: wrap; gap: 3px; justify-content: center;
+    }
+    .cc-tag {
+      font-size: 9px; font-weight: 700; color: #fff;
+      border-radius: 3px; padding: 1px 5px;
+    }
+    .cc-tag.hard { background: rgba(200,50,50,0.85); }
+    .cc-tag.soft { background: rgba(60,100,180,0.85); }
+
+    /* =============================================
+       選択フェイズ：右下小メモ
+    ============================================= */
+    #notepad {
+      position: absolute;
+      bottom: 20px; right: 20px;
+      background: rgba(255,252,220,0.93);
+      border: 2px solid #c8b560;
+      border-radius: 4px;
+      width: 320px;
+      box-shadow: 3px 3px 10px rgba(0,0,0,0.45);
+      overflow: hidden;
+      opacity: 0; transform: translateY(12px);
+      pointer-events: none;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    #notepad.visible { opacity: 1; transform: translateY(0); }
+
+    .notepad-header {
+      background: #e8c840; padding: 5px 10px;
+      font-size: 11px; font-weight: 700; color: #5a4000;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .notepad-body { padding: 6px 8px; }
+
+    .pokemon-row {
+      display: flex; align-items: center;
+      padding: 4px 2px; border-bottom: 1px solid rgba(180,160,80,0.3); gap: 6px;
+    }
+    .pokemon-row:last-child { border-bottom: none; }
+    .pokemon-row img { width: 30px; height: 30px; object-fit: contain; flex-shrink: 0; }
+    .pokemon-info { flex: 1; min-width: 0; }
+    .pokemon-name { font-size: 12px; font-weight: 600; color: #2a2a2a; white-space: nowrap; }
+    .pokemon-tags { display: flex; gap: 3px; margin-top: 2px; flex-wrap: wrap; }
+    .tag-role { font-size: 9px; font-weight: 700; color: #fff; border-radius: 3px; padding: 1px 5px; }
+    .tag-cc { font-size: 8px; font-weight: 700; color: #fff; border-radius: 3px; padding: 1px 4px; }
+    .tag-cc.hard { background: rgba(200,60,60,0.85); }
+    .tag-cc.soft { background: rgba(80,120,200,0.85); }
+
+    #dot { width: 7px; height: 7px; border-radius: 50%; background: #aaa; display: inline-block; }
+    #dot.active { background: #4caf50; }
+    #dot.picking { background: #e67e22; animation: blink 0.8s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* =============================================
+       ハリーセン 起動中インジケーター（右上固定・常時表示）
+    ============================================= */
+    @keyframes harisendance {
+      0%   { transform: translateY(0px) rotate(-4deg); }
+      25%  { transform: translateY(-8px) rotate(4deg); }
+      50%  { transform: translateY(-12px) rotate(-4deg); }
+      75%  { transform: translateY(-8px) rotate(4deg); }
+      100% { transform: translateY(0px) rotate(-4deg); }
+    }
+    #harisen {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 1;
+    }
+    #harisen img {
+      width: 56px;
+      height: 56px;
+      image-rendering: pixelated;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.85));
+    }
+    @keyframes rainbow {
+      0%   { filter: drop-shadow(0 2px 6px rgba(0,0,0,0.85)) hue-rotate(0deg); }
+      100% { filter: drop-shadow(0 2px 6px rgba(0,0,0,0.85)) hue-rotate(360deg); }
+    }
+    #harisen.dancing img {
+      animation: harisendance 1.2s ease-in-out infinite, rainbow 1.5s linear infinite;
+    }
+    #harisen .harisen-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.85);
+      text-shadow: 0 1px 3px rgba(0,0,0,1);
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+  <div id="harisen">
+    <img id="harisen-img" src="/images/harisen_still.png" alt="obs-vision">
+    <div class="harisen-label">obs-vision</div>
+  </div>
+
+  <div id="top-bar"></div>
+
+  <div id="notepad">
+    <div class="notepad-header">相手チーム <span id="dot"></span></div>
+    <div class="notepad-body" id="notepad-body">
+      <div style="font-size:11px;color:#aaa;padding:6px 2px">待機中...</div>
+    </div>
+  </div>
+
+  <script>
+    const HARD_CC = new Set(['スタン', '眠り', '凍り', '拘束']);
+    const ROLE_CLASS = { 'アタッカー': 'role-attacker', 'ディフェンダー': 'role-defender', 'スピーダー': 'role-speedster', 'バランス': 'role-allrounder', 'サポート': 'role-supporter' };
+    const ROLE_DISPLAY = { 'アタッカー': 'アタック', 'ディフェンダー': 'ディフェンス', 'スピーダー': 'スピード', 'バランス': 'バランス', 'サポート': 'サポート' };
+    const ROLE_COLOR = { 'アタッカー': '#dc3c32', 'ディフェンダー': '#32aa50', 'スピーダー': '#3278dc', 'バランス': '#8c3cc8', 'サポート': '#dcbe28' };
+    const LANE_ICON = { '中央': '🌿', '上': '⬆', '下': '⬇' };
+
+    // レーン予測
+    const LANE_SLOTS = [
+      { lane: '中央', scores: { 'スピーダー': 5, 'バランス': 3, 'アタッカー': 1, 'ディフェンダー': 0, 'サポート': 0 } },
+      { lane: '上', scores: { 'バランス': 5, 'スピーダー': 3, 'アタッカー': 2, 'ディフェンダー': 0, 'サポート': 0 } },
+      { lane: '上', scores: { 'サポート': 5, 'ディフェンダー': 3, 'アタッカー': 0, 'バランス': 0, 'スピーダー': 0 } },
+      { lane: '下', scores: { 'アタッカー': 5, 'バランス': 2, 'スピーダー': 1, 'ディフェンダー': 0, 'サポート': 0 } },
+      { lane: '下', scores: { 'ディフェンダー': 5, 'サポート': 2, 'アタッカー': 0, 'バランス': 0, 'スピーダー': 0 } },
+    ];
+
+    function predictLanes(team) {
+      const remaining = team.map((p, i) => ({ ...p, idx: i }));
+      const assignments = new Array(team.length).fill('');
+      for (const slot of LANE_SLOTS) {
+        if (!remaining.length) break;
+        let bestIdx = 0, bestScore = -1;
+        remaining.forEach((p, i) => {
+          let s = slot.scores[p.role] || 0;
+          if (slot.lane === '中央' && p.jungle) s += 3;
+          if (s > bestScore) { bestScore = s; bestIdx = i; }
+        });
+        assignments[remaining[bestIdx].idx] = slot.lane;
+        remaining.splice(bestIdx, 1);
+      }
+      return assignments;
+    }
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+    function ccTagsHtml(ccList, cls) {
+      if (!ccList?.length) return '';
+      return ccList.map(cc => {
+        const type = HARD_CC.has(cc) ? 'hard' : 'soft';
+        return `<span class="${cls} ${type}">${esc(cc)}</span>`;
+      }).join('');
+    }
+
+    const topBar = document.getElementById('top-bar');
+    const notepad = document.getElementById('notepad');
+    const notepadBody = document.getElementById('notepad-body');
+    const dot = document.getElementById('dot');
+    const harisen = document.getElementById('harisen');
+    const harisenImg = document.getElementById('harisen-img');
+
+    // -----------------------------------------------
+    // 定期リフレッシュ・スタック検出
+    // -----------------------------------------------
+    const IDLE_REFRESH_MS  = 30 * 60 * 1000; // アイドル30分でリロード
+    const STUCK_MS         = 60 * 1000;       // 1-4体検出が1分続いたらリロード
+    let idleRefreshTimer = null;
+    let stuckTimer = null;
+
+    function startIdleRefresh() {
+      if (idleRefreshTimer) clearTimeout(idleRefreshTimer);
+      idleRefreshTimer = setTimeout(() => {
+        console.log('[overlay] アイドル30分経過 → リロード');
+        location.reload();
+      }, IDLE_REFRESH_MS);
+    }
+    function cancelIdleRefresh() {
+      if (idleRefreshTimer) { clearTimeout(idleRefreshTimer); idleRefreshTimer = null; }
+    }
+    function startStuckTimer() {
+      if (stuckTimer) return; // 既に動いている
+      stuckTimer = setTimeout(() => {
+        console.log('[overlay] スタック: 1分以上1-4体検出継続 → リロード');
+        location.reload();
+      }, STUCK_MS);
+    }
+    function cancelStuckTimer() {
+      if (stuckTimer) { clearTimeout(stuckTimer); stuckTimer = null; }
+    }
+
+    startIdleRefresh(); // 起動時スタート
+
+    function renderTopBar(team) {
+      if (!team?.length) return;
+      topBar.innerHTML = '';
+      const lanes = predictLanes(team);
+
+      // レーン別にグループ化（上→中央→下）
+      const groups = { '上': [], '中央': [], '下': [] };
+      team.forEach((p, i) => {
+        const lane = lanes[i] || '下';
+        if (!groups[lane]) groups[lane] = [];
+        groups[lane].push({ p, lane });
+      });
+
+      const LANE_LABEL = { '上': '⬆ 上ルート', '中央': '🌿 中央', '下': '⬇ 下ルート' };
+
+      for (const laneName of ['上', '中央', '下']) {
+        const members = groups[laneName];
+        if (!members?.length) continue;
+
+        const group = document.createElement('div');
+        group.className = 'lane-group' + (laneName === '中央' ? ' lane-center' : '');
+        group.style.position = 'relative';
+        group.innerHTML = `<div class="lane-group-label">${LANE_LABEL[laneName]}</div>`;
+
+        members.forEach(({ p }) => {
+          const cls = ROLE_CLASS[p.role] || '';
+          const card = document.createElement('div');
+          card.className = `top-card ${cls}`;
+          card.innerHTML = `
+            ${p.icon ? `<img src="${p.icon}" alt="${esc(p.name)}" onerror="this.style.display='none'">` : `<div class="no-icon">?</div>`}
+            <div class="card-name">${esc(p.name)}</div>
+            <div class="card-role">${ROLE_DISPLAY[p.role] || p.role}</div>
+            ${p.cc?.length ? `<div class="card-cc">${ccTagsHtml(p.cc, 'cc-tag')}</div>` : ''}
+          `;
+          group.appendChild(card);
+        });
+
+        topBar.appendChild(group);
+      }
+    }
+
+    function renderNotepad(team) {
+      if (!team?.length) return;
+      notepadBody.innerHTML = '';
+      team.forEach(p => {
+        const color = ROLE_COLOR[p.role] || '#95a5a6';
+        const row = document.createElement('div');
+        row.className = 'pokemon-row';
+        row.innerHTML = `
+          ${p.icon ? `<img src="${p.icon}" alt="${esc(p.name)}">` : ''}
+          <div class="pokemon-info">
+            <div class="pokemon-name">${esc(p.name)}</div>
+            <div class="pokemon-tags">
+              <span class="tag-role" style="background:${color}">${ROLE_DISPLAY[p.role] || p.role}</span>
+              ${ccTagsHtml(p.cc, 'tag-cc')}
+            </div>
+          </div>
+        `;
+        notepadBody.appendChild(row);
+      });
+    }
+
+    const es = new EventSource('/events');
+    es.onmessage = (e) => {
+      let data;
+      try { data = JSON.parse(e.data); } catch { return; }
+
+      if (data.type === 'status') dot.className = 'active';
+
+      if (data.type === 'pick_update') {
+        renderNotepad(data.enemyTeam);
+        notepad.className = 'visible';
+        topBar.className = '';
+        dot.className = 'picking';
+        harisenImg.src = '/images/harisen.gif';
+        harisen.classList.add('dancing');
+        cancelIdleRefresh();
+        startStuckTimer(); // 1-4体検出が1分続いたらリロード
+      }
+
+      if (data.type === 'preparation') {
+        if (data.enemyTeam?.length) {
+          renderTopBar(data.enemyTeam);
+          renderNotepad(data.enemyTeam);
+        }
+        topBar.className = 'visible';
+        notepad.className = '';
+        dot.className = 'active';
+        harisenImg.src = '/images/harisen_still.png';
+        harisen.classList.remove('dancing');
+        cancelStuckTimer();
+        cancelIdleRefresh(); // 表示中はリフレッシュしない
+      }
+
+      if (data.type === 'gameplay') {
+        topBar.className = '';
+        notepad.className = '';
+        dot.className = '';
+        harisenImg.src = '/images/harisen_still.png';
+        harisen.classList.remove('dancing');
+        cancelStuckTimer();
+        startIdleRefresh(); // アイドル復帰 → 30分タイマー再開
+      }
+    };
+    es.onerror = () => { dot.className = ''; startIdleRefresh(); };
+
+    // デバッグ: ?debug でスロット検出範囲を赤枠表示
+    if (new URLSearchParams(location.search).has('debug')) {
+      const slots = [
+        { x: 0.9227, y: 0.125, w: 0.0594, h: 0.1028 },
+        { x: 0.9227, y: 0.2594, w: 0.0594, h: 0.1028 },
+        { x: 0.9227, y: 0.3937, w: 0.0594, h: 0.1028 },
+        { x: 0.9227, y: 0.5281, w: 0.0594, h: 0.1028 },
+        { x: 0.9227, y: 0.6625, w: 0.0594, h: 0.1028 },
+      ];
+      slots.forEach((s, i) => {
+        const el = document.createElement('div');
+        el.style.cssText = `position:absolute;left:${s.x*100}%;top:${s.y*100}%;width:${s.w*100}%;height:${s.h*100}%;border:2px solid red;pointer-events:none;z-index:999;`;
+        el.innerHTML = `<span style="color:red;font-size:10px;background:rgba(0,0,0,0.6);padding:1px 3px">${i}</span>`;
+        document.body.appendChild(el);
+      });
+    }
+  </script>
+</body>
+</html>

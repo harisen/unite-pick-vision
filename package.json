@@ -1,0 +1,46 @@
+{
+  "name": "obs-vision",
+  "version": "1.1.1",
+  "description": "ポケモンユナイト構成分析オーバーレイ",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "update-db": "node build-pokemon-db.js && git add pokemon-db.json images/ && git commit -m \"update: ポケモンDB・画像更新\" && npm version patch --no-git-tag-version && git add package.json package-lock.json && git commit -m \"chore: version bump\" && echo \"更新完了（git pushは手動で）\""
+  },
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "express": "^4.18.0",
+    "obs-websocket-js": "^5.0.0"
+  },
+  "devDependencies": {
+    "electron": "^41.1.1",
+    "electron-builder": "^26.8.1"
+  },
+  "build": {
+    "appId": "com.local.obs-vision",
+    "productName": "obs-vision",
+    "win": {
+      "target": "portable",
+      "icon": "build/icon.ico"
+    },
+    "files": [
+      "main.js",
+      "overlay.html",
+      "settings.html",
+      "calibrate.html",
+      "preview-slots.html",
+      "preview-ingame.html",
+      "pokemon-db.json",
+      ".env.example",
+      "images/**",
+      "node_modules/**"
+    ],
+    "extraResources": [
+      {
+        "from": "images",
+        "to": "images"
+      }
+    ]
+  }
+}

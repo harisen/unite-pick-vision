@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>obs-vision スロット位置キャリブレーション</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #1a1d26; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    h2 { font-size: 16px; margin-bottom: 8px; }
+    .info { font-size: 13px; color: #aaa; margin-bottom: 12px; }
+    .step { color: #e8c840; font-weight: 700; }
+    #canvas-wrap { position: relative; display: inline-block; cursor: crosshair; }
+    canvas { display: block; border: 1px solid #444; }
+    #output { margin-top: 16px; background: #252836; border: 1px solid #3a3f52; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 12px; white-space: pre-wrap; min-height: 60px; }
+    button { margin-top: 10px; padding: 8px 16px; background: #e8c840; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; }
+    button:hover { background: #f0d840; }
+    .legend { font-size: 12px; color: #888; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <h2>スロット位置キャリブレーション</h2>
+  <div class="info">
+    <span class="step">1.</span> 1番上のアイコン（トレーナー5）の<b>左上</b>をクリック<br>
+    <span class="step">2.</span> 同じアイコンの<b>右下</b>をクリック<br>
+    <span class="step">3.</span> 1番下のアイコン（トレーナー9）の<b>中央付近</b>をクリック<br>
+    → 5スロット分の座標が自動計算されます
+  </div>
+
+  <div id="canvas-wrap">
+    <canvas id="cv"></canvas>
+  </div>
+
+  <button onclick="resetClicks()">リセット</button>
+  <button onclick="applyCoords()">この座標を適用（.envに保存）</button>
+
+  <div id="output">ピック画面のスクショを読み込み中...</div>
+  <div class="legend">赤枠 = 計算されたスロット範囲 / 緑点 = クリック位置</div>
+
+  <script>
+    const cv = document.getElementById('cv');
+    const ctx = cv.getContext('2d');
+    const output = document.getElementById('output');
+    const img = new Image();
+    const clicks = [];
+    let slots = null;
+    const W = 1280, H = 720;
+
+    img.onload = () => {
+      cv.width = W; cv.height = H;
+      ctx.drawImage(img, 0, 0, W, H);
+      output.textContent = 'スクショ読み込み完了。1番上のアイコンの左上をクリックしてください。';
+    };
+    img.onerror = () => {
+      output.textContent = 'debug/screenshot.jpg が見つかりません。\nピック画面を映した状態でアプリを起動し、debug/ にスクショが保存されるのを待ってください。';
+    };
+    img.src = 'debug/screenshot.jpg?' + Date.now();
+
+    cv.addEventListener('click', (e) => {
+      const rect = cv.getBoundingClientRect();
+      const scaleX = W / rect.width;
+      const scaleY = H / rect.height;
+      const px = Math.floor((e.clientX - rect.left) * scaleX);
+      const py = Math.floor((e.clientY - rect.top) * scaleY);
+
+      clicks.push({ px, py });
+
+      // 緑点を描画
+      ctx.fillStyle = '#0f0';
+      ctx.beginPath();
+      ctx.arc(px, py, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (clicks.length === 1) {
+        output.textContent = `左上: (${px}, ${py})\n同じアイコンの右下をクリックしてください。`;
+      } else if (clicks.length === 2) {
+        output.textContent = `左上: (${clicks[0].px}, ${clicks[0].py})\n右下: (${px}, ${py})\n1番下のアイコン（トレーナー9）の中央付近をクリックしてください。`;
+      } else if (clicks.length === 3) {
+        calcSlots();
+      }
+    });
+
+    function calcSlots() {
+      const tl = clicks[0]; // 1番上アイコンの左上
+      const br = clicks[1]; // 1番上アイコンの右下
+      const bt = clicks[2]; // 1番下アイコンの中央
+
+      const iconW = br.px - tl.px;
+      const iconH = br.py - tl.py;
+      const bottomCenterY = bt.py;
+      const topCenterY = tl.py + iconH / 2;
+
+      // 5スロット均等配置
+      const spacing = (bottomCenterY - topCenterY) / 4;
+
+      slots = [];
+      for (let i = 0; i < 5; i++) {
+        const centerY = topCenterY + spacing * i;
+        slots.push({
+          x: +(tl.px / W).toFixed(4),
+          y: +((centerY - iconH / 2) / H).toFixed(4),
+          w: +(iconW / W).toFixed(4),
+          h: +(iconH / H).toFixed(4),
+        });
+      }
+
+      // 赤枠を描画
+      redraw();
+
+      let text = '--- 計算結果 ---\n';
+      slots.forEach((s, i) => {
+        text += `スロット${i}: { x: ${s.x}, y: ${s.y}, w: ${s.w}, h: ${s.h} }\n`;
+      });
+      text += '\n--- main.js 用 ---\n';
+      text += slots.map((s, i) =>
+        `      { x: ${s.x}, y: ${s.y}, w: ${s.w}, h: ${s.h} }, // トレーナー${i+5}`
+      ).join('\n');
+      output.textContent = text;
+    }
+
+    function redraw() {
+      ctx.drawImage(img, 0, 0, W, H);
+      // クリック点
+      clicks.forEach(c => {
+        ctx.fillStyle = '#0f0';
+        ctx.beginPath();
+        ctx.arc(c.px, c.py, 5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      // スロット枠
+      if (slots) {
+        ctx.strokeStyle = 'red';
+        ctx.lineWidth = 2;
+        slots.forEach(s => {
+          ctx.strokeRect(s.x * W, s.y * H, s.w * W, s.h * H);
+        });
+      }
+    }
+
+    function resetClicks() {
+      clicks.length = 0;
+      slots = null;
+      ctx.drawImage(img, 0, 0, W, H);
+      output.textContent = '1番上のアイコンの左上をクリックしてください。';
+    }
+
+    async function applyCoords() {
+      if (!slots) { alert('先にスロット位置を指定してください'); return; }
+      const slotsJson = JSON.stringify(slots);
+      // .envに SLOT_REGIONS として保存
+      const cfg = await fetch('/config').then(r => r.json());
+      await fetch('/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...cfg, SLOT_REGIONS: slotsJson }),
+      });
+      output.textContent += '\n\n.env に SLOT_REGIONS を保存しました。アプリを再起動してください。';
+    }
+  </script>
+</body>
+</html>

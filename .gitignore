@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+node_modules/
+debug/
+dist/
+img/
+error.log
+*.log
+*.bak
+CLAUDE.md
+images/pokemon/
+build-pokemon-db.js
+preview-slots.html
+preview-ingame.html
